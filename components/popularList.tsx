@@ -5,36 +5,63 @@ import {
   ActivityIndicator, // For loading spinner
   Button, // For efficient list rendering
   Dimensions,
+  FlatList,
   Image,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 
-import { useMovieContext } from "@/contexts/movieContext";
-import { Movie } from "@/contexts/movieContext/types";
+import { Movie, useMovieContext } from "@/contexts/movieContext";
+import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window"); // Get screen width
-type Props = { type: string };
 
-const PopularList: React.FC<Props> = (prop) => {
+const PopularList: React.FC = () => {
   const {
     movies,
-    loading,
+    loadingMovies,
     error,
     currentPage,
     totalPages,
-    trending,
     fetchPopularMovies,
+    hasMore,
   } = useMovieContext();
 
-  const data = () => {
-    if (prop.type === "popular") return movies;
-    else if (prop.type === "trending") return trending;
-  };
+  const router = useRouter();
 
-  const renderMovieItem = ({ item }: { item: Movie }) => (
-    <View style={styles.movieCard}>
+  if (loadingMovies && movies.length === 0) {
+    return (
+      <View style={styles.centeredContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Loading movies...</Text>
+      </View>
+    );
+  }
+
+  if (error && movies.length === 0) {
+    return (
+      <View style={styles.centeredContainer}>
+        <Text style={styles.errorText}>
+          Error: {error} please change you dns
+        </Text>
+        <Button title="Retry" onPress={() => fetchPopularMovies(currentPage)} />
+      </View>
+    );
+  }
+
+  const handlePress = (id: number) => {
+    router.push({
+      pathname: "/(player)/details",
+      params: { id: id.toString() },
+    });
+  };
+  const renderItem = ({ item }: { item: Movie }) => (
+    <TouchableOpacity
+      style={styles.movieCard}
+      onPress={() => handlePress(item.id)}
+    >
       {item.poster_path ? (
         <Image
           source={{ uri: `https://image.tmdb.org/t/p/w200${item.poster_path}` }}
@@ -46,60 +73,38 @@ const PopularList: React.FC<Props> = (prop) => {
           <Text style={styles.noPosterText}>No Image</Text>
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
-  // ... rest of your MovieList component remains the same ...
-  if (loading) {
-    return (
-      <View style={styles.centeredContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Loading movies...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centeredContainer}>
-        <Text style={styles.errorText}>Error: {error}</Text>
-        <Button title="Retry" onPress={() => fetchPopularMovies(currentPage)} />
-      </View>
-    );
-  }
+  const handleEndReached = () => {
+    if (!loadingMovies && hasMore && currentPage < totalPages) {
+      fetchPopularMovies(currentPage + 1);
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      {movies.map((item) => (
-        <View key={item.id} style={styles.movieCard}>
-          {item.poster_path ? (
-            <Image
-              source={{
-                uri: `https://image.tmdb.org/t/p/w200${item.poster_path}`,
-              }}
-              style={styles.posterImage}
-              resizeMode="contain"
-            />
-          ) : (
-            <View style={styles.noPoster}>
-              <Text style={styles.noPosterText}>No Image</Text>
-            </View>
-          )}
-        </View>
-      ))}
-    </View>
+    <FlatList
+      showsVerticalScrollIndicator={false}
+      data={movies}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.id.toString()}
+      numColumns={2}
+      contentContainerStyle={styles.container}
+      onEndReached={handleEndReached}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={
+        loadingMovies ? (
+          <ActivityIndicator size="small" color="#0000ff" />
+        ) : null
+      }
+    />
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
-    flexDirection: "row",
-    overflow: "scroll",
-    flexWrap: "wrap",
-    // flexBasis: "auto",
-    // flexGrow: 1,
-    // justifyContent: "space-evenly"
+    justifyContent: "center",
+    paddingBottom: 20, // Optional: add some bottom padding
   },
   centeredContainer: {
     flex: 1,
@@ -112,34 +117,27 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
   },
-  flatListContent: {
-    // paddingBottom: 20, // Space for pagination buttons
-  },
-  columnWrapper: {
-    // justifyContent: "space-around", // Distribute items evenly
-    marginBottom: 15,
-  },
+
   movieCard: {
     // flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 10,
+    // borderRadius: 10,
+    paddingVertical: 10,
     alignItems: "center",
     justifyContent: "center",
     width: width / 2 - 20, // Roughly half screen width minus padding
     marginHorizontal: 5, // Small horizontal margin to contribute to `space-around`
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3, // For Android shadow
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 4,
+    // elevation: 3, // For Android shadow
     marginVertical: 10,
   },
   posterImage: {
     width: "100%",
-    height: 150, // Fixed height for posters
-    borderRadius: 10,
-    marginBottom: 10,
+    height: 200, // Fixed height for posters
+    // borderRadius: 10,
+    // marginBottom: 30,
   },
   noPoster: {
     width: "100%",
@@ -183,4 +181,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PopularList;
+export default React.memo(PopularList);

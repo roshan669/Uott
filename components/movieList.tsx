@@ -13,30 +13,15 @@ import {
 } from "react-native";
 
 import { useMovieContext } from "@/contexts/movieContext";
-import { Movie } from "@/contexts/movieContext/types";
+import { Series } from "@/contexts/movieContext/types";
 
 const { width } = Dimensions.get("window"); // Get screen width
-type Props = { type: string };
 
-const MovieList: React.FC<Props> = (prop) => {
-  const {
-    movies,
-    loading,
-    error,
-    currentPage,
-    totalPages,
-    trending,
-    fetchPopularMovies,
-  } = useMovieContext();
+const MovieList: React.FC = React.memo(function MovieList() {
+  const { loadingSeries, error, currentPage, series, fetchPopularMovies } =
+    useMovieContext();
 
-  //   const [data, setData] = useState<Movie[]>([]);
-
-  const data = () => {
-    if (prop.type === "popular") return movies;
-    else if (prop.type === "trending") return trending;
-  };
-
-  const renderMovieItem = ({ item }: { item: Movie }) => (
+  const renderMovieItem = ({ item }: { item: Series }) => (
     <View style={styles.movieCard}>
       {item.poster_path ? (
         <Image
@@ -52,12 +37,11 @@ const MovieList: React.FC<Props> = (prop) => {
     </View>
   );
 
-  // ... rest of your MovieList component remains the same ...
-  if (loading) {
+  if (loadingSeries) {
     return (
       <View style={styles.centeredContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Loading movies...</Text>
+        <Text>Loading series...</Text>
       </View>
     );
   }
@@ -74,44 +58,19 @@ const MovieList: React.FC<Props> = (prop) => {
   return (
     <View>
       <FlatList
-        data={data()}
+        data={series}
         horizontal={true}
         renderItem={renderMovieItem}
         keyExtractor={(item) => item.id.toString()}
-        // numColumns={width > 600 ? 4 : 2} // Adjust columns based on screen width (for tablets vs phones)
         contentContainerStyle={styles.flatListContent}
-        // columnWrapperStyle={styles.columnWrapper} // For spacing between columns
         showsVerticalScrollIndicator={false}
-        // ListFooterComponent={
-        //   // Pagination buttons as a footer
-        //   <View style={styles.paginationContainer}>
-        //     <Button
-        //       title="Previous Page"
-        //       onPress={() => fetchPopularMovies(currentPage - 1)}
-        //       disabled={currentPage <= 1 || loading}
-        //     />
-        //     <Text style={styles.pageText}>
-        //       {" "}
-        //       Page {currentPage} of {totalPages}{" "}
-        //     </Text>
-        //     <Button
-        //       title="Next Page"
-        //       onPress={() => fetchPopularMovies(currentPage + 1)}
-        //       disabled={currentPage >= totalPages || loading}
-        //     />
-        //   </View>
-        // }
       />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
-  centeredContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  centeredContainer: {},
   errorText: {
     color: "red",
     fontSize: 16,
@@ -119,25 +78,16 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   flatListContent: {
-    paddingBottom: 20, // Space for pagination buttons
+    // paddingBottom: 20, // Space for pagination buttons
   },
   columnWrapper: {
-    justifyContent: "space-around", // Distribute items evenly
-    marginBottom: 15,
+    // justifyContent: "space-around", // Distribute items evenly
+    width: 20,
+    // marginBottom: 15,
   },
   movieCard: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    width: width / 2 - 20, // Roughly half screen width minus padding
-    // marginHorizontal: 5, // Small horizontal margin to contribute to `space-around`
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 4,
-    // elevation: 3, // For Android shadow
+    marginLeft: 10,
+    width: width / 2.75 - 20, // Roughly half screen width minus padding
   },
   posterImage: {
     width: "100%",

@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Movie, MovieContextType } from "./types";
+import { Movie, MovieContextType, Series } from "./types";
 
 // TMDb API Configuration
 const API_URL = "https://api.themoviedb.org/3/";
@@ -26,20 +26,24 @@ export const MovieContextProvider: React.FC<MovieContextProviderProps> = ({
   children,
 }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [trending, setTrending] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [series, setSeries] = useState<Series[]>([]);
+  const [loadingMovies, setLoadingMovies] = useState<boolean>(true);
+  const [loadingSeries, setLoadingSeries] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalResults, setTotalResults] = useState<number>(0);
+  const [hasMore, setHasMore] = useState<boolean>(true);
 
-  const fetchPopularMovies = useCallback(async (page: number = 1) => {
-    setLoading(true);
+  // Remove useCallback, make fetchPopularMovies a regular function
+  async function fetchPopularMovies(page: number = 1) {
+    // if (loadingMovies) return; // Prevent multiple fetches
+    setLoadingMovies(true);
     setError(null); // Clear previous errors
 
     try {
       const response = await fetch(
-        `${API_URL}movie/popular?language=en-US&page=${page}`,
+        `${API_URL}movie/now_playing?language=en-US&page=${page}`,
         {
           headers: {
             Authorization: `Bearer ${API_BEARER_TOKEN}`,
@@ -57,10 +61,17 @@ export const MovieContextProvider: React.FC<MovieContextProviderProps> = ({
       }
 
       const data = await response.json();
-      setMovies(data.results);
+
+      if (page === 1) {
+        setMovies(data.results);
+      } else {
+        setMovies((prev) => [...prev, ...data.results]);
+      }
+      setLoadingMovies(false);
       setCurrentPage(data.page);
       setTotalPages(data.total_pages);
       setTotalResults(data.total_results);
+      setHasMore(data.page < data.total_pages);
     } catch (err) {
       console.error("Failed to fetch movies:", err);
       if (err instanceof Error) {
@@ -69,18 +80,19 @@ export const MovieContextProvider: React.FC<MovieContextProviderProps> = ({
         setError("An unknown error occurred.");
       }
       setMovies([]); // Clear movies on error
+      setHasMore(false);
     } finally {
-      setLoading(false);
+      setLoadingMovies(false);
     }
-  }, []); // No dependencies, as API_URL and TOKEN are constants
+  }
 
-  const fetchTrending = useCallback(async (page: number = 1) => {
-    setLoading(true);
+  const fetchPopularSeries = useCallback(async (page: number = 1) => {
+    setLoadingSeries(true);
     setError(null); // Clear previous errors
 
     try {
       const response = await fetch(
-        `${API_URL}trending/all/day?language=en-US&page=${page}`,
+        `${API_URL}trending/tv/day?language=en-US&page=${page}`,
         {
           headers: {
             Authorization: `Bearer ${API_BEARER_TOKEN}`,
@@ -98,52 +110,61 @@ export const MovieContextProvider: React.FC<MovieContextProviderProps> = ({
       }
 
       const data = await response.json();
-      setTrending(data.results);
-      setCurrentPage(data.page);
-      setTotalPages(data.total_pages);
-      setTotalResults(data.total_results);
+      setSeries(data.results);
+      // Do NOT update currentPage, totalPages, or totalResults here
     } catch (err) {
-      console.error("Failed to fetch movies:", err);
+      console.error("Failed to fetch series:", err);
       if (err instanceof Error) {
         setError(err.message);
       } else {
         setError("An unknown error occurred.");
       }
-      setMovies([]); // Clear movies on error
+      setSeries([]); // Clear movies on error
     } finally {
-      setLoading(false);
+      setLoadingSeries(false);
     }
   }, []);
 
   // Fetch movies on initial component mount
   useEffect(() => {
     fetchPopularMovies(1);
-    fetchPopularMovies(1);
-  }, [fetchPopularMovies]); // Dependency array includes fetchPopularMovies
+    fetchPopularSeries(1);
+  }, []); // Only run on mount
 
   // Memoize the context value to prevent unnecessary re-renders of consumers
-  const contextValue = useMemo<MovieContextType>(
+  const contextValue = useMemo<
+    MovieContextType & {
+      hasMore: boolean;
+      loadingMovies: boolean;
+      loadingSeries: boolean;
+    }
+  >(
     () => ({
       movies,
-      loading,
+      loading: loadingMovies || loadingSeries,
+      loadingMovies,
+      loadingSeries,
       error,
       currentPage,
       totalPages,
       totalResults,
       fetchPopularMovies,
-      fetchTrending,
-      trending,
+      fetchPopularSeries,
+      series,
+      hasMore,
     }),
     [
       movies,
-      loading,
+      loadingMovies,
+      loadingSeries,
       error,
       currentPage,
       totalPages,
       totalResults,
       fetchPopularMovies,
-      fetchTrending,
-      trending,
+      fetchPopularSeries,
+      series,
+      hasMore,
     ]
   );
 
