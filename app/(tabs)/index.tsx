@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function HomePage() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "dark"];
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: color.background }]}
@@ -44,3 +45,7 @@ const styles = StyleSheet.create({
     // flexWrap: "wrap",
   },
 });
+
+export const options = {
+  animation: "fade",
+};

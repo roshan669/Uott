@@ -19,7 +19,10 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView>
       <MovieContextProvider>
-        <StatusBar style={colorScheme === "light" ? "dark" : "light"} />
+        <StatusBar
+          style={colorScheme === "light" ? "dark" : "light"}
+          translucent
+        />
         <Tabs
           screenOptions={{
             tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,

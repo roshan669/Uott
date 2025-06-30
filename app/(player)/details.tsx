@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/Colors";
-import { useGlobalSearchParams } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useGlobalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -8,14 +9,21 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
+const API_URI = "https://db.bitcine.app/3/";
+
+const API_KEY = "ad301b7cc82ffe19273e55e4d4206885";
+export const options = {
+  animation: "fade",
+};
 
 const Details: React.FC = () => {
+  const router = useRouter();
   const [loading, setLoading] = useState<boolean>(true);
   const [details, setDetails] = useState<any>(null);
   const [error, setError] = useState<string>();
@@ -30,7 +38,7 @@ const Details: React.FC = () => {
     async function fetchDetail() {
       try {
         const response = await fetch(
-          `https://api.themoviedb.org/3/movie/${id}?language=en-US`,
+          `${API_URI}movie/${id}?language=en-US&api_key=${API_KEY}`,
           {
             headers: {
               Authorization: `Bearer ${API_BEARER_TOKEN}`,
@@ -81,8 +89,15 @@ const Details: React.FC = () => {
     return null;
   }
 
+  const handlePress = () => {
+    router.push({
+      pathname: "/(player)/player",
+      params: { id: id.toString() },
+    });
+  };
+
   return (
-    <SafeAreaView
+    <View
       style={{
         flex: 1,
         backgroundColor: Colors[colorScheme ?? "dark"].background,
@@ -139,16 +154,39 @@ const Details: React.FC = () => {
               {details.vote_average} ({details.vote_count} votes)
             </Text>
           </Text>
+          <TouchableOpacity
+            onPress={handlePress}
+            style={[styles.btn, { borderColor: color.icon }]}
+          >
+            <Text style={[styles.label, { marginTop: 0, color: color.text }]}>
+              Play Now
+            </Text>
+            <MaterialIcons name="play-circle" color={color.icon} size={25} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  btn: {
+    // flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    height: 50,
+    width: "100%",
+    // backgroundColor: "#fff",
+    alignItems: "center",
+    borderWidth: 2,
+    marginTop: 20,
+    borderRadius: 10,
+    padding: 5,
+    gap: 4,
+  },
   headerContainer: {
     width: "100%",
-    height: height * 0.5,
+    height: height * 0.6,
     position: "relative",
     marginBottom: 20,
   },
@@ -162,10 +200,12 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     height: "100%",
     width: "100%",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.7)",
     // Fade from transparent at top to black at bottom
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerContent: {
     position: "absolute",

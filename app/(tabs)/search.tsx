@@ -16,6 +16,9 @@ import {
 } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
+const API_URI = "https://db.bitcine.app/3/";
+
+const API_KEY = "ad301b7cc82ffe19273e55e4d4206885";
 
 const { width } = Dimensions.get("window"); // Get screen width
 
@@ -86,15 +89,11 @@ const Search: React.FC = () => {
         );
 
         const response = await fetch(
-          `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(
+          `${API_URI}search/multi?query=${encodeURIComponent(
             query
-          )}&language=en-US`,
+          )}&language=en-US&api_key=${API_KEY}`,
           {
             headers: {
-              Authorization: `Bearer ${
-                process.env.EXPO_PUBLIC_TMDB_BEARER_TOKEN ||
-                "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkOGJhYWFkMGRiOTI0YzI0NmQyYjA0ZjUzNDVhZjg4MiIsIm5iZiI6MTcxNTUxOTIyNy4wMTIsInN1YiI6IjY2NDBiZWZiMThhZDFlNzU4ODIwN2VmMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.A3W5QcNqUZ_nv8xe67asxpCMNWXlDuUNDILWHEqx-OI"
-              }`,
               accept: "application/json",
             },
             signal: signal, // Link fetch to AbortController
@@ -376,5 +375,9 @@ const styles = StyleSheet.create({
     color: "#666",
   },
 });
+
+export const options = {
+  animation: "fade",
+};
 
 export default React.memo(Search);

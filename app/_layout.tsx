@@ -6,7 +6,10 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   return (
     <>
-      <StatusBar style={colorScheme === "light" ? "dark" : "light"} />
+      <StatusBar
+        style={colorScheme === "light" ? "dark" : "light"}
+        translucent
+      />
       <Stack screenOptions={{ headerShown: false }} />
     </>
   );

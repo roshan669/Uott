@@ -9,20 +9,33 @@ import {
   Image,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 
 import { useMovieContext } from "@/contexts/movieContext";
 import { Series } from "@/contexts/movieContext/types";
+import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window"); // Get screen width
 
 const MovieList: React.FC = React.memo(function MovieList() {
+  const router = useRouter();
   const { loadingSeries, error, currentPage, series, fetchPopularMovies } =
     useMovieContext();
 
+  const handlePress = (id: number) => {
+    router.push({
+      pathname: "/(player)/tvDetails",
+      params: { id: id.toString() },
+    });
+  };
+
   const renderMovieItem = ({ item }: { item: Series }) => (
-    <View style={styles.movieCard}>
+    <TouchableOpacity
+      onPress={() => handlePress(item.id)}
+      style={styles.movieCard}
+    >
       {item.poster_path ? (
         <Image
           source={{ uri: `https://image.tmdb.org/t/p/w200${item.poster_path}` }}
@@ -34,7 +47,7 @@ const MovieList: React.FC = React.memo(function MovieList() {
           <Text style={styles.noPosterText}>No Image</Text>
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   if (loadingSeries) {
