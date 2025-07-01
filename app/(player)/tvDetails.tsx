@@ -124,6 +124,7 @@ const TvDetails: React.FC = () => {
   const [selectedSeasonNumber, setSelectedSeasonNumber] = useState<
     number | null
   >(null); // Track selected season
+  const [selectedEp, setSelectedEp] = useState<number>(1);
   const [error, setError] = useState<string | null>(null);
 
   const colorScheme = useColorScheme();
@@ -237,7 +238,16 @@ const TvDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.centeredContainer}>
+      <View
+        style={[
+          styles.centeredContainer,
+          {
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: color.background,
+          },
+        ]}
+      >
         <ActivityIndicator size="large" color="#0000ff" />
         <Text style={{ color: color.text }}>Loading details...</Text>
       </View>
@@ -260,10 +270,16 @@ const TvDetails: React.FC = () => {
     );
   }
 
-  const handlePress = () => {
+  const handlePress = (ep: number) => {
+    setSelectedEp(ep);
     router.push({
       pathname: "/(player)/player",
-      params: { id: tvShowId!, type: "tv" },
+      params: {
+        id: tvShowId!,
+        type: "tv",
+        season: selectedSeasonNumber,
+        ep: selectedEp,
+      },
     });
   };
 
@@ -273,207 +289,160 @@ const TvDetails: React.FC = () => {
     ? `https://image.tmdb.org/t/p/w500${details.poster_path}`
     : null;
 
-  const displayRuntime =
-    details.episode_run_time && details.episode_run_time.length > 0
-      ? `${details.episode_run_time[0]} min`
-      : "N/A";
-
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: Colors[colorScheme ?? "dark"].background,
-      }}
-    >
-      <ScrollView style={{ flex: 1 }} bounces={false}>
-        <View style={styles.headerContainer}>
-          {imageUrl ? (
-            <ImageBackground
-              source={{ uri: imageUrl }}
-              style={styles.backgroundImage}
-              resizeMode="cover"
-            >
-              <View style={styles.overlay} />
-              <View style={styles.headerContent}>
-                <Text style={styles.title}>{details.name}</Text>
-                {details.tagline ? (
-                  <Text style={styles.tagline}>{details.tagline}</Text>
-                ) : null}
-              </View>
-            </ImageBackground>
-          ) : (
-            <View style={[styles.backgroundImage, styles.noImageBackground]}>
-              <View style={styles.overlay} />
-              <View style={styles.headerContent}>
-                <Text style={styles.title}>{details.name}</Text>
-                {details.tagline ? (
-                  <Text style={styles.tagline}>{details.tagline}</Text>
-                ) : null}
-                <Text style={styles.noImageText}>No image available</Text>
-              </View>
-            </View>
-          )}
-        </View>
+    <ScrollView style={{ flex: 1 }}>
+      <View style={styles.headerContainer}>
+        {imageUrl ? (
+          <ImageBackground
+            source={{ uri: imageUrl }}
+            style={styles.backgroundImage}
+            resizeMode="cover"
+          >
+            <View style={styles.overlay} />
+            <View style={styles.headerContent}>
+              <Text style={styles.title}>{details.name}</Text>
 
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: Colors[colorScheme ?? "dark"].background },
-          ]}
-        >
-          <Text style={[styles.overview, { color: color.text }]}>
-            {details.overview.substring(0, 100) + "..."}
-          </Text>
-          <Text style={[styles.label, { color: color.text }]}>
-            Genres:{" "}
-            <Text style={[styles.value, { color: color.text }]}>
-              {details.genres?.map((g: Genre) => g.name).join(", ") || "N/A"}
-            </Text>
-          </Text>
-          <Text style={[styles.label, { color: color.text }]}>
-            First Air Date:{" "}
-            <Text style={[styles.value, { color: color.text }]}>
-              {details.first_air_date || "N/A"}
-            </Text>
-          </Text>
-          <Text style={[styles.label, { color: color.text }]}>
-            Episode Runtime:{" "}
-            <Text style={[styles.value, { color: color.text }]}>
-              {displayRuntime}
-            </Text>
-          </Text>
-          <Text style={[styles.label, { color: color.text }]}>
-            Rating:{" "}
-            <Text style={[styles.value, { color: color.text }]}>
-              {details.vote_average ? details.vote_average.toFixed(1) : "N/A"} (
-              {details.vote_count || 0} votes)
-            </Text>
-          </Text>
-          <Text style={[styles.label, { color: color.text }]}>
-            Number of Seasons:{" "}
-            <Text style={[styles.value, { color: color.text }]}>
-              {details.number_of_seasons || "N/A"}
-            </Text>
-          </Text>
-          <Text style={[styles.label, { color: color.text }]}>
-            Status:{" "}
-            <Text style={[styles.value, { color: color.text }]}>
-              {details.status || "N/A"}
-            </Text>
-          </Text>
-
-          {/* --- Seasons Section --- */}
-          {details.seasons && details.seasons.length > 0 && (
-            <View style={styles.seasonsContainer}>
-              <Text style={[styles.sectionTitle, { color: color.text }]}>
-                Seasons
+              <Text
+                style={[styles.value, { marginBottom: 5, textAlign: "center" }]}
+              >
+                {details.genres?.map((g: Genre) => g.name).join(", ") || "N/A"}
               </Text>
-              <FlatList
-                horizontal
-                data={details.seasons.filter((s) => s.episode_count > 0)} // Only show seasons with episodes
-                keyExtractor={(item) => item.id.toString()}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.seasonListContent}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
+
+              <Text
+                style={[
+                  styles.tagline,
+                  { fontStyle: "normal", fontWeight: "bold" },
+                ]}
+              >
+                {details.number_of_seasons || "N/A"} Seasons •{" "}
+                {details.number_of_episodes} Episodes
+              </Text>
+            </View>
+          </ImageBackground>
+        ) : (
+          <View style={[styles.backgroundImage, styles.noImageBackground]}>
+            <View style={styles.overlay} />
+            <View style={styles.headerContent}>
+              <Text style={styles.title}>{details.name}</Text>
+              {details.tagline ? (
+                <Text style={styles.tagline}>{details.tagline}</Text>
+              ) : null}
+              <Text style={styles.noImageText}>No image available</Text>
+            </View>
+          </View>
+        )}
+      </View>
+
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: Colors[colorScheme ?? "dark"].background },
+        ]}
+      >
+        <Text style={[styles.overview, { color: color.text }]}>
+          {details.overview.substring(0, details.overview.indexOf(".") + 1)}
+        </Text>
+
+        {/* --- Seasons Section --- */}
+        {details.seasons && details.seasons.length > 0 && (
+          <View style={styles.seasonsContainer}>
+            <FlatList
+              horizontal
+              data={details.seasons.filter((s) => s.episode_count > 0)} // Only show seasons with episodes
+              keyExtractor={(item) => item.id.toString()}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.seasonListContent}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.seasonButton,
+                    { borderColor: color.text },
+                    item.season_number === selectedSeasonNumber && {
+                      backgroundColor: color.tint,
+                    },
+                  ]}
+                  onPress={() => setSelectedSeasonNumber(item.season_number)}
+                >
+                  <Text
                     style={[
-                      styles.seasonButton,
-                      { borderColor: color.text },
-                      item.season_number === selectedSeasonNumber && {
-                        backgroundColor: color.tint,
+                      styles.seasonButtonText,
+                      {
+                        color:
+                          item.season_number === selectedSeasonNumber
+                            ? Colors.light.text
+                            : color.text,
                       },
                     ]}
-                    onPress={() => setSelectedSeasonNumber(item.season_number)}
                   >
-                    <Text
-                      style={[
-                        styles.seasonButtonText,
-                        {
-                          color:
-                            item.season_number === selectedSeasonNumber
-                              ? Colors.light.text
-                              : color.text,
-                        },
-                      ]}
-                    >
-                      {item.season_number === 0
-                        ? "Specials"
-                        : `Season ${item.season_number}`}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              />
-            </View>
-          )}
-
-          {/* --- Episodes Section --- */}
-          {selectedSeasonNumber !== null && (
-            <View style={styles.episodesContainer}>
-              <Text style={[styles.sectionTitle, { color: color.text }]}>
-                Episodes (Season {selectedSeasonNumber})
-              </Text>
-              {seasonDetails ? (
-                seasonDetails.episodes.length > 0 ? (
-                  seasonDetails.episodes.map((episode) => (
-                    <TouchableOpacity
-                      key={episode.id}
-                      style={[styles.episodeItem, { borderColor: color.icon }]}
-                      // onPress={() => handlePlayEpisode(episode)} // Implement this for specific episode playback
-                    >
-                      {episode.still_path && (
-                        <ImageBackground
-                          source={{
-                            uri: `https://image.tmdb.org/t/p/w300${episode.still_path}`,
-                          }}
-                          style={styles.episodeStill}
-                          imageStyle={{ borderRadius: 8 }}
-                        >
-                          <MaterialIcons
-                            name="play-circle"
-                            size={40}
-                            color="rgba(255,255,255,0.8)"
-                          />
-                        </ImageBackground>
-                      )}
-                      <View style={styles.episodeInfo}>
-                        <Text
-                          style={[styles.episodeTitle, { color: color.text }]}
-                        >
-                          E{episode.episode_number}: {episode.name}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.episodeOverview,
-                            { color: color.icon },
-                          ]}
-                        >
-                          {episode.overview
-                            ? episode.overview.substring(0, 50) + "..."
-                            : "No overview available."}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))
-                ) : (
-                  <Text style={[styles.noEpisodesText, { color: color.icon }]}>
-                    No episodes found for this season.
+                    {item.season_number === 0
+                      ? "Specials"
+                      : `Season ${item.season_number}`}
                   </Text>
-                )
-              ) : (
-                <ActivityIndicator size="small" color="#0000ff" />
+                </TouchableOpacity>
               )}
-            </View>
-          )}
+            />
+          </View>
+        )}
 
-          <TouchableOpacity
-            onPress={handlePress}
-            style={[styles.btn, { borderColor: color.icon }]}
-          >
-            <Text style={{ color: color.text }}>💓cody</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
+        {/* --- Episodes Section --- */}
+        {selectedSeasonNumber !== null && (
+          <View style={styles.episodesContainer}>
+            {seasonDetails ? (
+              seasonDetails.episodes.length > 0 ? (
+                seasonDetails.episodes.map((episode, index) => (
+                  <TouchableOpacity
+                    onPress={() => handlePress(index + 1)}
+                    key={episode.id}
+                    style={[styles.episodeItem, { borderColor: color.icon }]}
+                    // onPress={() => handlePlayEpisode(episode)} // Implement this for specific episode playback
+                  >
+                    {episode.still_path && (
+                      <ImageBackground
+                        source={{
+                          uri: `https://image.tmdb.org/t/p/w300${episode.still_path}`,
+                        }}
+                        style={styles.episodeStill}
+                        imageStyle={{ borderRadius: 8 }}
+                      >
+                        <MaterialIcons
+                          name="play-circle"
+                          size={40}
+                          color="rgba(255,255,255,0.8)"
+                        />
+                      </ImageBackground>
+                    )}
+                    <View style={styles.episodeInfo}>
+                      <Text
+                        style={[styles.episodeTitle, { color: color.text }]}
+                      >
+                        E{episode.episode_number}: {episode.name}
+                      </Text>
+                      <Text
+                        style={[styles.episodeOverview, { color: color.icon }]}
+                      >
+                        {episode.overview
+                          ? episode.overview.substring(0, 50) + "..."
+                          : "No overview available."}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text style={[styles.noEpisodesText, { color: color.icon }]}>
+                  No episodes found for this season.
+                </Text>
+              )
+            ) : (
+              <ActivityIndicator size="small" color="#0000ff" />
+            )}
+          </View>
+        )}
+
+        <TouchableOpacity style={[styles.btn, { borderColor: color.icon }]}>
+          <Text style={{ color: color.text }}>💓cody</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 };
 
@@ -493,10 +462,10 @@ const styles = StyleSheet.create({
   headerContainer: {
     width: "100%",
     height: height * 0.6,
-    position: "relative",
+    // position: "relative",
     marginBottom: 20,
-    // justifyContent: "center",
-    // alignItems: "center",
+    justifyContent: "center",
+    alignItems: "center",
   },
   backgroundImage: {
     flex: 1,
@@ -522,7 +491,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     height: "100%",
     width: "100%",
-    backgroundColor: "rgba(0,0,0,0.8)",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   headerContent: {
     position: "absolute",
@@ -550,10 +519,10 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0,0,0,0.5)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
-    marginBottom: 8,
+    marginBottom: 20,
   },
   card: {
-    // marginHorizontal: 16,
+    marginHorizontal: 0,
     marginTop: -50,
     borderRadius: 18,
     padding: 20,
@@ -561,8 +530,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
-    // elevation: 6,
-    width: "99%",
+    elevation: 6,
+    width: "100%",
+    // backgroundColor: "rgba(0,0,0,0.05)",
   },
   overview: {
     fontSize: 16,
@@ -593,13 +563,13 @@ const styles = StyleSheet.create({
   },
   // --- New Styles for Seasons and Episodes ---
   seasonsContainer: {
-    marginTop: 20,
+    marginTop: 10,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 10,
-    textAlign: "center",
+    // textAlign: "center",
   },
   seasonListContent: {
     paddingHorizontal: 10,
@@ -611,9 +581,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 20,
     marginHorizontal: 5,
-    minWidth: 90, // Ensure some minimum width
+    minWidth: 60, // Ensure some minimum width
     justifyContent: "center",
     alignItems: "center",
+    // width: 50,
   },
   seasonButtonText: {
     fontSize: 14,
@@ -629,15 +600,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 15,
-    borderWidth: 1,
-    borderRadius: 10,
+    borderWidth: 0.2,
+    borderRadius: 20,
     padding: 10,
     backgroundColor: "rgba(255,255,255,0.05)", // Slightly translucent background
-    width: "90%",
+    width: "100%",
   },
   episodeStill: {
     width: 100,
-    height: 70,
+    height: 50,
     borderRadius: 8,
     marginRight: 15,
     justifyContent: "center",
@@ -661,4 +632,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TvDetails;
+export default React.memo(TvDetails);

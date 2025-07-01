@@ -1,10 +1,13 @@
 import { Colors } from "@/constants/Colors";
+import { Movie } from "@/contexts/movieContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useGlobalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  FlatList,
+  Image,
   ImageBackground,
   ScrollView,
   StyleSheet,
@@ -27,12 +30,53 @@ const Details: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [details, setDetails] = useState<any>(null);
   const [error, setError] = useState<string>();
+  const [searchLoading, setSearchLoading] = useState<boolean>(false);
+  const [similar, setSimilar] = useState<Movie[]>([]);
+  const [searchError, setSearchError] = useState<string>();
 
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "dark"];
   const { id } = useGlobalSearchParams();
   const API_BEARER_TOKEN =
     "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkOGJhYWFkMGRiOTI0YzI0NmQyYjA0ZjUzNDVhZjg4MiIsIm5iZiI6MTcxNTUxOTIyNy4wMTIsInN1YiI6IjY2NDBiZWZiMThhZDFlNzU4ODIwN2VmMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.A3W5QcNqUZ_nv8xe67asxpCMNWXlDuUNDILWHEqx-OI";
+
+  const fetchInitial = useCallback(async () => {
+    setSearchLoading(true);
+
+    try {
+      const response = await fetch(
+        `${API_URI}movie/${id}/similar?language=en-US&api_key=${API_KEY}&page=1`,
+        {
+          headers: {
+            // Authorization: `Bearer ${API_BEARER_TOKEN}`,
+            accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        // Handle HTTP errors (e.g., 401 Unauthorized, 404 Not Found)
+        const errorData = await response.json();
+        throw new Error(
+          errorData.status_message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      setSimilar(data.results);
+      // Do NOT update currentPage, totalPages, or totalResults here
+    } catch (err) {
+      console.error("Failed to fetch series:", err);
+      if (err instanceof Error) {
+        setSearchError(err.message);
+      } else {
+        setSearchError("An unknown error occurred.");
+      }
+      setSimilar([]); // Clear movies on error
+    } finally {
+      setSearchLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchDetail() {
@@ -66,6 +110,7 @@ const Details: React.FC = () => {
       }
     }
     fetchDetail();
+    fetchInitial();
   }, [id]);
 
   if (loading) {
@@ -92,8 +137,44 @@ const Details: React.FC = () => {
   const handlePress = () => {
     router.push({
       pathname: "/(player)/player",
-      params: { id: id.toString() },
+      params: { id: id.toString(), type: "movie" },
     });
+  };
+
+  const handleSimilarPress = (id: number) => {
+    router.replace({
+      pathname: "/(player)/details",
+      params: { id: id.toString(), type: "movie" },
+    });
+  };
+
+  const renderSimilar = ({ item }: { item: Movie }) => {
+    return (
+      <TouchableOpacity
+        onPress={() => handleSimilarPress(item.id)}
+        style={styles.similarCard}
+      >
+        {item.poster_path ? (
+          <Image
+            source={{
+              uri: `https://image.tmdb.org/t/p/w300${item.poster_path}`,
+            }}
+            style={styles.similarImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.similarNoImage}>
+            <Text style={styles.similarNoImageText}>No Image</Text>
+          </View>
+        )}
+        <Text style={styles.movieTitle} numberOfLines={1}>
+          {item.title || item.name}
+        </Text>
+        <Text style={styles.movieTitle}>
+          <MaterialIcons name="star" /> {item.vote_average}
+        </Text>
+      </TouchableOpacity>
+    );
   };
 
   return (
@@ -103,7 +184,11 @@ const Details: React.FC = () => {
         backgroundColor: Colors[colorScheme ?? "dark"].background,
       }}
     >
-      <ScrollView style={{ flex: 1 }} bounces={false}>
+      <ScrollView
+        style={{ flex: 1 }}
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.headerContainer}>
           <ImageBackground
             source={{
@@ -115,9 +200,32 @@ const Details: React.FC = () => {
             <View style={styles.overlay} />
             <View style={styles.headerContent}>
               <Text style={styles.title}>{details.title}</Text>
-              {details.tagline ? (
-                <Text style={styles.tagline}>{details.tagline}</Text>
-              ) : null}
+              <Text
+                style={[
+                  styles.value,
+                  {
+                    textAlign: "center",
+                    fontStyle: "italic",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 10, height: 10 },
+                  },
+                ]}
+              >
+                {details.genres?.map((g: any) => g.name).join(", ")}
+              </Text>
+              <Text
+                style={[
+                  styles.value,
+                  {
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 10, height: 10 },
+                  },
+                ]}
+              >
+                Runtime : {details.runtime} min
+              </Text>
             </View>
           </ImageBackground>
         </View>
@@ -127,43 +235,56 @@ const Details: React.FC = () => {
             { backgroundColor: Colors[colorScheme ?? "dark"].background },
           ]}
         >
-          <Text style={[styles.overview, { color: color.text }]}>
-            {details.overview}
-          </Text>
-          <Text style={[styles.label, { color: color.text }]}>
-            Genres:{" "}
-            <Text style={[styles.value, { color: color.text }]}>
-              {details.genres?.map((g: any) => g.name).join(", ")}
-            </Text>
-          </Text>
-          <Text style={[styles.label, { color: color.text }]}>
-            Release Date:{" "}
-            <Text style={[styles.value, { color: color.text }]}>
-              {details.release_date}
-            </Text>
-          </Text>
-          <Text style={[styles.label, { color: color.text }]}>
-            Runtime:{" "}
-            <Text style={[styles.value, { color: color.text }]}>
-              {details.runtime} min
-            </Text>
-          </Text>
-          <Text style={[styles.label, { color: color.text }]}>
-            Rating:{" "}
-            <Text style={[styles.value, { color: color.text }]}>
-              {details.vote_average} ({details.vote_count} votes)
-            </Text>
-          </Text>
           <TouchableOpacity
             onPress={handlePress}
-            style={[styles.btn, { borderColor: color.icon }]}
+            style={[styles.btn, { borderColor: color.tint }]}
           >
-            <Text style={[styles.label, { marginTop: 0, color: color.text }]}>
+            <Text
+              style={[
+                styles.label,
+                { marginTop: 0, color: color.tint, elevation: 5 },
+              ]}
+            >
               Play Now
             </Text>
-            <MaterialIcons name="play-circle" color={color.icon} size={25} />
+            <MaterialIcons name="play-circle" color={color.tint} size={25} />
           </TouchableOpacity>
+
+          <Text style={[styles.overview, { color: color.text }]}>
+            {details.overview.substring(0, details.overview.indexOf(".") + 1)}
+          </Text>
         </View>
+        <Text
+          style={[
+            styles.title,
+            {
+              color: color.text,
+              margin: 20,
+              fontSize: 22,
+              textAlign: "left",
+            },
+          ]}
+        >
+          You May Also Like
+        </Text>
+        <FlatList
+          data={similar}
+          horizontal
+          renderItem={renderSimilar}
+          keyExtractor={(item) => item.id.toString()}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.similarList}
+          ItemSeparatorComponent={() => <View style={{ width: 16 }} />}
+          ListEmptyComponent={() => {
+            return (
+              !searchLoading && (
+                <Text style={{ color: "#888", margin: 20 }}>
+                  No similar movies found.
+                </Text>
+              )
+            );
+          }}
+        />
       </ScrollView>
     </View>
   );
@@ -171,18 +292,16 @@ const Details: React.FC = () => {
 
 const styles = StyleSheet.create({
   btn: {
-    // flex: 1,
     flexDirection: "row",
     justifyContent: "center",
     height: 50,
     width: "100%",
-    // backgroundColor: "#fff",
+    // backgroundColor: "rgba(0,0,0,0.5)",
     alignItems: "center",
-    borderWidth: 2,
-    marginTop: 20,
+    borderWidth: 0.5,
+    marginBottom: 10,
     borderRadius: 10,
-    padding: 5,
-    gap: 4,
+    gap: 5,
   },
   headerContainer: {
     width: "100%",
@@ -200,7 +319,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     height: "100%",
     width: "100%",
-    backgroundColor: "rgba(0,0,0,0.7)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     // Fade from transparent at top to black at bottom
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
@@ -237,7 +356,7 @@ const styles = StyleSheet.create({
   },
   card: {
     // backgroundColor: "#181818",
-    marginHorizontal: 16,
+    // marginHorizontal: 16,
     marginTop: -30,
     borderRadius: 18,
     padding: 20,
@@ -246,12 +365,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 6,
+    width: "100%",
   },
   overview: {
     fontSize: 16,
     color: "#eee",
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: 5,
   },
   label: {
     fontWeight: "bold",
@@ -277,6 +397,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 10,
     textAlign: "center",
+  },
+  similarList: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    alignItems: "center",
+  },
+  movieTitle: {
+    fontSize: 15,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 2,
+    color: "#fff",
+  },
+  similarCard: {
+    width: 120,
+    marginBottom: 8,
+    alignItems: "center",
+    backgroundColor: "#181818",
+    borderRadius: 14,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+    marginHorizontal: 2,
+  },
+  similarImage: {
+    width: 120,
+    height: 180,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+  },
+  similarNoImage: {
+    width: 120,
+    height: 180,
+    backgroundColor: "#333",
+    justifyContent: "center",
+    alignItems: "center",
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+  },
+  similarNoImageText: {
+    color: "#aaa",
+    fontSize: 14,
   },
 });
 

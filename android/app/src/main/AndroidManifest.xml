@@ -25,6 +25,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="uott"/>
+        <data android:scheme="exp+uott"/>
       </intent-filter>
     </activity>
   </application>

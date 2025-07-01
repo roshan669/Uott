@@ -54,7 +54,7 @@ const PopularList: React.FC = () => {
   const handlePress = (id: number) => {
     router.push({
       pathname: "/(player)/details",
-      params: { id: id.toString() },
+      params: { id: id.toString(), type: "movie" },
     });
   };
   const renderItem = ({ item }: { item: Movie }) => (
@@ -97,17 +97,17 @@ const PopularList: React.FC = () => {
           <ActivityIndicator size="small" color="#0000ff" />
         ) : null
       }
+      ItemSeparatorComponent={() => <View style={{ height: 20 }} />} // 16px vertical space between rows
     />
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: "center",
-    paddingBottom: 20, // Optional: add some bottom padding
+    alignItems: "center",
   },
   centeredContainer: {
-    flex: 1,
+    // flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -119,24 +119,12 @@ const styles = StyleSheet.create({
   },
 
   movieCard: {
-    // flex: 1,
-    // borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    width: width / 2 - 20, // Roughly half screen width minus padding
-    marginHorizontal: 5, // Small horizontal margin to contribute to `space-around`
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 4,
-    // elevation: 3, // For Android shadow
-    marginVertical: 10,
+    width: width / 2 - 5, // Roughly half screen width minus padding
   },
   posterImage: {
     width: "100%",
-    height: 200, // Fixed height for posters
-    // borderRadius: 10,
+    height: 230, // Fixed height for posters
+    borderRadius: 20,
     // marginBottom: 30,
   },
   noPoster: {

@@ -43,7 +43,12 @@ export default function RootLayout() {
               ios: {
                 position: "absolute",
               },
-              default: {},
+              default: {
+                borderTopWidth: 0.17,
+                // elevation: 1,
+                marginTop: 0,
+                // height: 10,
+              },
             }),
           }}
         >

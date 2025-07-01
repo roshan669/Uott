@@ -3,6 +3,7 @@
 import { Colors } from "@/constants/Colors";
 import { Movie } from "@/contexts/movieContext";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator, // For loading spinner
@@ -11,6 +12,7 @@ import {
   Image,
   StyleSheet,
   Text,
+  TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
@@ -28,10 +30,49 @@ const Search: React.FC = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [type, SetType] = useState<"tv" | "movie">("movie");
 
   const latestCallIdRef = useRef<number>(0);
   const currentAbortControllerRef = useRef<AbortController | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | number | null>(null);
+
+  const fetchInitial = useCallback(async () => {
+    setSearchLoading(true);
+    setSearchError(null);
+    try {
+      const response = await fetch(
+        `${API_URI}trending/all/day?language=en-US&api_key=${API_KEY}&page=1`,
+        {
+          headers: {
+            // Authorization: `Bearer ${API_BEARER_TOKEN}`,
+            accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        // Handle HTTP errors (e.g., 401 Unauthorized, 404 Not Found)
+        const errorData = await response.json();
+        throw new Error(
+          errorData.status_message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      setSearchResults(data.results);
+      // Do NOT update currentPage, totalPages, or totalResults here
+    } catch (err) {
+      console.error("Failed to fetch series:", err);
+      if (err instanceof Error) {
+        setSearchError(err.message);
+      } else {
+        setSearchError("An unknown error occurred.");
+      }
+      setSearchResults([]); // Clear movies on error
+    } finally {
+      setSearchLoading(false);
+    }
+  }, []);
 
   // Use useCallback to memoize the handleSearch function itself
   const handleSearch = useCallback(async (query: string) => {
@@ -50,14 +91,15 @@ const Search: React.FC = () => {
     // Abort any previous in-flight fetch request immediately
     if (currentAbortControllerRef.current) {
       currentAbortControllerRef.current.abort();
-      console.log(`Aborting fetch for previous call ID: ${thisCallId - 1}`);
+
       currentAbortControllerRef.current = null; // Clear the ref after aborting
     }
 
     if (!query) {
-      setSearchResults([]);
+      // setSearchResults([]);
       setSearchError(null);
       setSearchLoading(false);
+      fetchInitial();
       // If query is cleared, reset the latest ID so a new search is truly 'first'.
       latestCallIdRef.current = 0;
       return;
@@ -71,9 +113,6 @@ const Search: React.FC = () => {
       // --- CRITICAL CHECK 1: Is this still the latest intended call after debounce? ---
       // Compare this call's ID with the globally latest initiated ID
       if (thisCallId !== latestCallIdRef.current) {
-        console.log(
-          `Debounced call (ID: ${thisCallId}) is outdated, new call (ID: ${latestCallIdRef.current}) initiated. Aborting execution.`
-        );
         setSearchLoading(false); // Make sure loading is turned off for abandoned calls
         return; // Exit here if a newer call has already started
       }
@@ -84,10 +123,6 @@ const Search: React.FC = () => {
       const signal = controller.signal;
 
       try {
-        console.log(
-          `Executing API fetch for call ID: ${thisCallId}, query: "${query}"`
-        );
-
         const response = await fetch(
           `${API_URI}search/multi?query=${encodeURIComponent(
             query
@@ -103,17 +138,11 @@ const Search: React.FC = () => {
         // --- CRITICAL CHECK 2: After fetch, is this still the latest intended call? ---
         // This handles cases where a new call starts *during* the fetch operation.
         if (thisCallId !== latestCallIdRef.current) {
-          console.log(
-            `Response received for outdated call (ID: ${thisCallId}), new call (ID: ${latestCallIdRef.current}) exists. Ignoring data.`
-          );
           return; // Exit if newer call exists
         }
 
         // Check if the fetch was explicitly aborted (e.g., by a newer call)
         if (signal.aborted) {
-          console.log(
-            `Fetch for call ID ${thisCallId} was aborted by a new request. Ignoring response.`
-          );
           return; // Exit if aborted
         }
 
@@ -127,14 +156,8 @@ const Search: React.FC = () => {
 
         // --- CRITICAL CHECK 3: Final check before updating state ---
         if (thisCallId === latestCallIdRef.current) {
-          console.log(
-            `Updating state for the latest call (ID: ${thisCallId}).`
-          );
           setSearchResults(data.results || []);
         } else {
-          console.log(
-            `Not updating state for call ID ${thisCallId}, a newer call is active.`
-          );
         }
       } catch (err) {
         // Check if the error is due to abortion (an expected "cancellation")
@@ -143,7 +166,6 @@ const Search: React.FC = () => {
         }
         // Only set error state if it's not an abort and it's for the currently latest call
         else if (thisCallId === latestCallIdRef.current) {
-          console.error(`Error for call ID ${thisCallId}:`, err);
           setSearchError(err instanceof Error ? err.message : "Unknown error");
           setSearchResults([]); // Clear results on error for the latest call
         } else {
@@ -163,6 +185,7 @@ const Search: React.FC = () => {
 
   // Optional: Cleanup on unmount
   useEffect(() => {
+    fetchInitial();
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
@@ -173,8 +196,25 @@ const Search: React.FC = () => {
     };
   }, []);
 
+  const router = useRouter();
+
+  const handlePress = (item: Movie) => {
+    if (item.name) {
+      router.push({
+        pathname: "/(player)/tvDetails",
+        params: { id: item.id.toString() },
+      });
+    } else {
+      router.push({
+        pathname: "/(player)/details",
+        params: { id: item.id.toString() },
+      });
+    }
+  };
+
   const renderItem = ({ item }: { item: Movie }) => (
-    <View
+    <TouchableOpacity
+      onPress={() => handlePress(item)}
       style={[
         styles.movieCard,
         { backgroundColor: Colors[colorScheme ?? "dark"].background },
@@ -212,13 +252,13 @@ const Search: React.FC = () => {
       //   <Text style={styles.noPosterText}>No Image</Text>
       // </View>
       null}
-    </View>
+    </TouchableOpacity>
   );
 
   return (
     <SafeAreaView
       style={{
-        flex: 1,
+        flex: searchLoading ? 1 : 0,
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: Colors[colorScheme ?? "dark"].background,
@@ -243,7 +283,6 @@ const Search: React.FC = () => {
         <TextInput
           placeholder="Search..."
           placeholderTextColor={Colors[colorScheme ?? "dark"].icon}
-          autoFocus={true}
           style={{
             width: "90%",
             height: 40,
@@ -264,6 +303,8 @@ const Search: React.FC = () => {
           style={{
             backgroundColor: Colors[colorScheme ?? "dark"].background,
             flex: 1,
+            // justifyContent: "center",
+            alignItems: "center",
           }}
         >
           <ActivityIndicator size="large" color="#0000ff" />
@@ -273,17 +314,24 @@ const Search: React.FC = () => {
       ) : (
         <FlatList
           showsVerticalScrollIndicator={false}
-          data={searchQuery ? searchResults : []}
+          data={searchResults}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           numColumns={2}
-          contentContainerStyle={[
-            styles.container,
-            { backgroundColor: Colors[colorScheme ?? "dark"].background },
-          ]}
+          contentContainerStyle={{
+            backgroundColor: Colors[colorScheme ?? "dark"].background,
+          }}
           ListEmptyComponent={
             searchQuery && !searchLoading && searchResults.length === 0 ? (
-              <Text style={{ color: "#888", margin: 20 }}>
+              <Text
+                style={{
+                  flex: 1,
+                  color: "#888",
+                  margin: 20,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
                 No results found.
               </Text>
             ) : null
@@ -297,14 +345,13 @@ const Search: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     // justifyContent: "center",
-
-    paddingBottom: 20, // Optional: add some bottom padding
+    // paddingBottom: 20, // Optional: add some bottom padding
     // alignContent: "center",
   },
   centeredContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    // flex: 1,
+    // justifyContent: "center",
+    // alignItems: "center",
   },
   errorText: {
     color: "red",
@@ -314,25 +361,13 @@ const styles = StyleSheet.create({
   },
 
   movieCard: {
-    // flex: 1,
-    // borderRadius: 10,
-    // paddingVertical: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    width: width / 2, // Roughly half screen width minus padding
-    marginHorizontal: 4, // Small horizontal margin to contribute to `space-around`
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 4,
-    // elevation: 3, // For Android shadow
-    // marginVertical: 10,
+    width: width / 2 - 5, // Roughly half screen width minus padding
   },
   posterImage: {
     width: "100%",
-    height: 200, // Fixed height for posters
-    // borderRadius: 10,
-    // marginBottom: 30,
+    height: 230, // Fixed height for posters
+    borderRadius: 30,
+    margin: 5,
   },
   noPoster: {
     width: "100%",
@@ -373,6 +408,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginHorizontal: 10,
     color: "#666",
+    marginVertical: 10,
   },
 });
 
