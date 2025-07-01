@@ -108,8 +108,8 @@ const styles = StyleSheet.create({
   },
   centeredContainer: {
     // flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    // justifyContent: "center",
+    // alignItems: "center",
   },
   errorText: {
     color: "red",
@@ -125,6 +125,8 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 230, // Fixed height for posters
     borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 10, height: 10 },
     // marginBottom: 30,
   },
   noPoster: {
