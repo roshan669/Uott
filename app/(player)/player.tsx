@@ -43,8 +43,6 @@ export const Player: React.FC = () => {
   }: {
     nativeEvent: { targetUrl: string };
   }) => {
-    const { targetUrl } = nativeEvent; // In some versions, it might be nativeEvent.url
-
     return false;
   };
 

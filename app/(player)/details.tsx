@@ -1,10 +1,10 @@
 import { Colors } from "@/constants/Colors";
 import { Movie } from "@/contexts/movieContext";
 import { MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useGlobalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
@@ -16,6 +16,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { createShimmerPlaceholder } from "react-native-shimmer-placeholder";
 
 const { height } = Dimensions.get("window");
 const API_URI = "https://db.bitcine.app/3/";
@@ -113,11 +114,72 @@ const Details: React.FC = () => {
     fetchInitial();
   }, [id]);
 
+  const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
+
   if (loading) {
     return (
-      <View style={styles.centeredContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Loading details...</Text>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: Colors[colorScheme ?? "dark"].background,
+          padding: 20,
+        }}
+      >
+        <ShimmerPlaceholder
+          shimmerColors={
+            colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+          }
+          style={{
+            height: "50%",
+            width: "100%",
+            borderRadius: 8,
+            marginBottom: 20,
+            alignSelf: "center",
+          }}
+        />
+        <ShimmerPlaceholder
+          shimmerColors={
+            colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+          }
+          style={{
+            height: 150,
+            width: "100%",
+            borderRadius: 18,
+            marginBottom: 30,
+          }}
+        />
+        <ShimmerPlaceholder
+          shimmerColors={
+            colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+          }
+          style={{
+            height: 30,
+            width: 120,
+            borderRadius: 8,
+            marginBottom: 20,
+            alignSelf: "flex-start",
+          }}
+        />
+        <View style={{ flexDirection: "row", gap: 8, marginBottom: 20 }}>
+          <ShimmerPlaceholder
+            shimmerColors={
+              colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+            }
+            style={{ height: 180, width: 120, borderRadius: 14 }}
+          />
+          <ShimmerPlaceholder
+            shimmerColors={
+              colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+            }
+            style={{ height: 180, width: 120, borderRadius: 14 }}
+          />
+          <ShimmerPlaceholder
+            shimmerColors={
+              colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+            }
+            style={{ height: 180, width: 120, borderRadius: 14 }}
+          />
+        </View>
       </View>
     );
   }
@@ -256,8 +318,8 @@ const Details: React.FC = () => {
         </View>
         <Text
           style={[
-            styles.title,
             {
+              fontWeight: "bold",
               color: color.text,
               margin: 20,
               fontSize: 22,
@@ -279,7 +341,7 @@ const Details: React.FC = () => {
             return (
               !searchLoading && (
                 <Text style={{ color: "#888", margin: 20 }}>
-                  No similar movies found.
+                  Don&#39;t look here...!
                 </Text>
               )
             );

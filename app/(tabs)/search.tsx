@@ -3,10 +3,10 @@
 import { Colors } from "@/constants/Colors";
 import { Movie } from "@/contexts/movieContext";
 import { MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, // For loading spinner
   Dimensions,
   FlatList,
   Image,
@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { createShimmerPlaceholder } from "react-native-shimmer-placeholder";
 const API_URI = "https://db.bitcine.app/3/";
 
 const API_KEY = "ad301b7cc82ffe19273e55e4d4206885";
@@ -30,13 +31,15 @@ const Search: React.FC = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [type, SetType] = useState<"tv" | "movie">("movie");
+  const [showContent, setShowContent] = useState(false);
 
   const latestCallIdRef = useRef<number>(0);
   const currentAbortControllerRef = useRef<AbortController | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | number | null>(null);
 
-  const fetchInitial = useCallback(async () => {
+  const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
+
+  const fetchInitial = useCallback(async (): Promise<void> => {
     setSearchLoading(true);
     setSearchError(null);
     try {
@@ -105,7 +108,8 @@ const Search: React.FC = () => {
       return;
     }
 
-    setSearchLoading(true); // Indicate loading as soon as a query is present
+    // Indicate loading as soon as a query is present
+    if (!searchLoading) setSearchLoading(true);
     setSearchError(null);
 
     // Set a new debounce timeout for this specific call
@@ -156,7 +160,11 @@ const Search: React.FC = () => {
 
         // --- CRITICAL CHECK 3: Final check before updating state ---
         if (thisCallId === latestCallIdRef.current) {
-          setSearchResults(data.results || []);
+          const filteredData = data.results.filter((item: Movie) => {
+            if (!item.poster_path) return false;
+            return true;
+          });
+          setSearchResults(filteredData || []);
         } else {
         }
       } catch (err) {
@@ -196,6 +204,17 @@ const Search: React.FC = () => {
     };
   }, []);
 
+  // Smooth transition from shimmer to content
+  useEffect(() => {
+    if (!searchLoading) {
+      // Add a short delay for fade-out effect
+      const timer = setTimeout(() => setShowContent(true), 250);
+      return () => clearTimeout(timer);
+    } else {
+      setShowContent(false);
+    }
+  }, [searchLoading]);
+
   const router = useRouter();
 
   const handlePress = (item: Movie) => {
@@ -229,38 +248,17 @@ const Search: React.FC = () => {
             style={styles.posterImage}
             resizeMode="contain"
           />
-
-          <Text
-            style={[
-              styles.movieTitle,
-              { color: Colors[colorScheme ?? "dark"].text },
-            ]}
-          >
-            {item.name}
-            {item.title}
-          </Text>
-          <Text
-            style={[
-              styles.movieTitle,
-              { color: Colors[colorScheme ?? "dark"].text },
-            ]}
-          >
-            <MaterialIcons name="star" /> {item.vote_average}
-          </Text>
         </>
-      ) : // <View style={styles.noPoster}>
-      //   <Text style={styles.noPosterText}>No Image</Text>
-      // </View>
-      null}
+      ) : null}
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaView
       style={{
-        flex: searchLoading ? 1 : 0,
+        flex: showContent ? 0 : 1,
         alignItems: "center",
-        justifyContent: "center",
+        // justifyContent: "center",
         backgroundColor: Colors[colorScheme ?? "dark"].background,
       }}
     >
@@ -280,6 +278,7 @@ const Search: React.FC = () => {
             width: "10%",
           }}
         />
+
         <TextInput
           placeholder="Search..."
           placeholderTextColor={Colors[colorScheme ?? "dark"].icon}
@@ -298,17 +297,81 @@ const Search: React.FC = () => {
           onChangeText={handleSearch}
         />
       </View>
-      {searchLoading ? (
-        <View
-          style={{
-            backgroundColor: Colors[colorScheme ?? "dark"].background,
-            flex: 1,
-            // justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
+      {searchLoading || !showContent ? (
+        <>
+          <View style={{ flexDirection: "row", gap: 3, marginBottom: 30 }}>
+            <ShimmerPlaceholder
+              shimmerColors={
+                colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+              }
+              style={{
+                height: 230,
+                width: "45%",
+                borderRadius: 16,
+                margin: 5,
+              }}
+              visible={false}
+              duration={600}
+              shimmerStyle={{
+                opacity: showContent ? 0 : 1,
+                transition: "opacity 0.3s",
+              }}
+            />
+            <ShimmerPlaceholder
+              shimmerColors={
+                colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+              }
+              style={{
+                height: 230,
+                width: "45%",
+                borderRadius: 16,
+                margin: 5,
+              }}
+              visible={false}
+              duration={600}
+              shimmerStyle={{
+                opacity: showContent ? 0 : 1,
+                transition: "opacity 0.3s",
+              }}
+            />
+          </View>
+          <View style={{ flexDirection: "row", gap: 3 }}>
+            <ShimmerPlaceholder
+              shimmerColors={
+                colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+              }
+              style={{
+                height: 230,
+                width: "45%",
+                borderRadius: 16,
+                margin: 5,
+              }}
+              visible={false}
+              duration={600}
+              shimmerStyle={{
+                opacity: showContent ? 0 : 1,
+                transition: "opacity 0.3s",
+              }}
+            />
+            <ShimmerPlaceholder
+              shimmerColors={
+                colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+              }
+              style={{
+                height: 230,
+                width: "45%",
+                borderRadius: 16,
+                margin: 5,
+              }}
+              visible={false}
+              duration={600}
+              shimmerStyle={{
+                opacity: showContent ? 0 : 1,
+                transition: "opacity 0.3s",
+              }}
+            />
+          </View>
+        </>
       ) : searchError ? (
         <Text style={{ color: "red", margin: 10 }}>{searchError}</Text>
       ) : (
@@ -318,18 +381,23 @@ const Search: React.FC = () => {
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           numColumns={2}
-          contentContainerStyle={{
-            backgroundColor: Colors[colorScheme ?? "dark"].background,
-          }}
+          contentContainerStyle={[
+            {
+              backgroundColor: Colors[colorScheme ?? "dark"].background,
+              flexGrow: 1, // Ensures FlatList always fills available space
+              minHeight: "100%", // Ensures background color covers the whole screen
+              // justifyContent: searchResults.length === 0 ? "center" : undefined,
+              alignItems: searchResults.length === 0 ? "center" : undefined,
+            },
+            styles.container,
+          ]}
           ListEmptyComponent={
             searchQuery && !searchLoading && searchResults.length === 0 ? (
               <Text
                 style={{
-                  flex: 1,
                   color: "#888",
                   margin: 20,
-                  justifyContent: "center",
-                  alignItems: "center",
+                  textAlign: "center",
                 }}
               >
                 No results found.

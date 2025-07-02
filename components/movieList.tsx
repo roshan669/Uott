@@ -2,7 +2,6 @@
 
 import React from "react";
 import {
-  ActivityIndicator, // For loading spinner
   Button, // For efficient list rendering
   Dimensions, // For pagination buttons
   FlatList,
@@ -10,12 +9,15 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 
 import { useMovieContext } from "@/contexts/movieContext";
 import { Series } from "@/contexts/movieContext/types";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { createShimmerPlaceholder } from "react-native-shimmer-placeholder";
 
 const { width } = Dimensions.get("window"); // Get screen width
 
@@ -23,6 +25,8 @@ const MovieList: React.FC = React.memo(function MovieList() {
   const router = useRouter();
   const { loadingSeries, error, currentPage, series, fetchPopularMovies } =
     useMovieContext();
+  const colorScheme = useColorScheme();
+  const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
   const handlePress = (id: number) => {
     router.push({
@@ -52,9 +56,43 @@ const MovieList: React.FC = React.memo(function MovieList() {
 
   if (loadingSeries) {
     return (
-      <View style={styles.centeredContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Loading series...</Text>
+      <View style={{ flexDirection: "row" }}>
+        <ShimmerPlaceholder
+          shimmerColors={
+            colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+          }
+          style={{
+            height: 150,
+            width: "30%",
+            borderRadius: 16,
+            // alignSelf: "center",
+            margin: 10,
+          }}
+        />
+        <ShimmerPlaceholder
+          shimmerColors={
+            colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+          }
+          style={{
+            height: 150,
+            width: "30%",
+            borderRadius: 16,
+            // alignSelf: "center",
+            margin: 10,
+          }}
+        />
+        <ShimmerPlaceholder
+          shimmerColors={
+            colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+          }
+          style={{
+            height: 150,
+            width: "30%",
+            borderRadius: 16,
+            // alignSelf: "center",
+            margin: 10,
+          }}
+        />
       </View>
     );
   }
@@ -110,7 +148,7 @@ const styles = StyleSheet.create({
   },
   noPoster: {
     width: "100%",
-    height: 250,
+    height: 150,
     backgroundColor: "#ccc",
     borderRadius: 8,
     marginBottom: 10,

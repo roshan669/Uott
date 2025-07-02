@@ -1,9 +1,10 @@
 import { Colors } from "@/constants/Colors";
 import { MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useGlobalSearchParams, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Dimensions,
   FlatList,
   ImageBackground,
@@ -14,6 +15,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { createShimmerPlaceholder } from "react-native-shimmer-placeholder";
 
 const { height } = Dimensions.get("window");
 const API_URI = "https://db.bitcine.app/3/";
@@ -236,6 +238,14 @@ const TvDetails: React.FC = () => {
     fetchSelectedSeasonDetails();
   }, [tvShowId, selectedSeasonNumber]); // Re-fetch when TV show ID or selected season changes
 
+  // useEffect(() => {
+  //   setInterval(() => {
+  //     setLoading(true);
+  //   }, 100);
+  // }, []);
+
+  const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
+
   if (loading) {
     return (
       <View
@@ -248,8 +258,89 @@ const TvDetails: React.FC = () => {
           },
         ]}
       >
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={{ color: color.text }}>Loading details...</Text>
+        <ShimmerPlaceholder
+          shimmerColors={
+            colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+          }
+          style={{
+            height: "60%",
+            width: "95%",
+            borderRadius: 8,
+            marginBottom: 20,
+            alignSelf: "center",
+          }}
+        />
+        <ShimmerPlaceholder
+          shimmerColors={
+            colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+          }
+          style={{
+            height: 210,
+            width: "90%",
+            borderRadius: 18,
+            marginBottom: 30,
+          }}
+        />
+        {/* <ShimmerPlaceholder
+          shimmerColors={
+            colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+          }
+          style={{
+            height: 30,
+            width: 120,
+            borderRadius: 8,
+            marginBottom: 20,
+            alignSelf: "flex-start",
+          }}
+        /> */}
+        {/* Episode shimmer row */}
+        <View style={{ width: "70%", margin: 10 }}>
+          {[1, 2, 3].map((i) => (
+            <View
+              key={i}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 15,
+              }}
+            >
+              <ShimmerPlaceholder
+                shimmerColors={
+                  colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+                }
+                style={{
+                  width: 100,
+                  height: 50,
+                  borderRadius: 8,
+                  marginRight: 15,
+                }}
+              />
+              <View style={{ flex: 1 }}>
+                <ShimmerPlaceholder
+                  shimmerColors={
+                    colorScheme === "dark"
+                      ? ["#222", "#111", "#222"]
+                      : undefined
+                  }
+                  style={{
+                    height: 18,
+                    width: "60%",
+                    borderRadius: 6,
+                    marginBottom: 8,
+                  }}
+                />
+                <ShimmerPlaceholder
+                  shimmerColors={
+                    colorScheme === "dark"
+                      ? ["#222", "#111", "#222"]
+                      : undefined
+                  }
+                  style={{ height: 12, width: "80%", borderRadius: 6 }}
+                />
+              </View>
+            </View>
+          ))}
+        </View>
       </View>
     );
   }
@@ -290,159 +381,218 @@ const TvDetails: React.FC = () => {
     : null;
 
   return (
-    <ScrollView style={{ flex: 1 }}>
-      <View style={styles.headerContainer}>
-        {imageUrl ? (
-          <ImageBackground
-            source={{ uri: imageUrl }}
-            style={styles.backgroundImage}
-            resizeMode="cover"
-          >
-            <View style={styles.overlay} />
-            <View style={styles.headerContent}>
-              <Text style={styles.title}>{details.name}</Text>
+    <>
+      <StatusBar style={colorScheme === "dark" ? "dark" : "light"} />
+      <ScrollView style={{ flex: 1 }}>
+        <View style={styles.headerContainer}>
+          {imageUrl ? (
+            <ImageBackground
+              source={{ uri: imageUrl }}
+              style={styles.backgroundImage}
+              resizeMode="cover"
+            >
+              <View style={styles.overlay} />
+              <View style={styles.headerContent}>
+                <Text style={styles.title}>{details.name}</Text>
 
-              <Text
-                style={[styles.value, { marginBottom: 5, textAlign: "center" }]}
-              >
-                {details.genres?.map((g: Genre) => g.name).join(", ") || "N/A"}
-              </Text>
-
-              <Text
-                style={[
-                  styles.tagline,
-                  { fontStyle: "normal", fontWeight: "bold" },
-                ]}
-              >
-                {details.number_of_seasons || "N/A"} Seasons •{" "}
-                {details.number_of_episodes} Episodes
-              </Text>
-            </View>
-          </ImageBackground>
-        ) : (
-          <View style={[styles.backgroundImage, styles.noImageBackground]}>
-            <View style={styles.overlay} />
-            <View style={styles.headerContent}>
-              <Text style={styles.title}>{details.name}</Text>
-              {details.tagline ? (
-                <Text style={styles.tagline}>{details.tagline}</Text>
-              ) : null}
-              <Text style={styles.noImageText}>No image available</Text>
-            </View>
-          </View>
-        )}
-      </View>
-
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: Colors[colorScheme ?? "dark"].background },
-        ]}
-      >
-        <Text style={[styles.overview, { color: color.text }]}>
-          {details.overview.substring(0, details.overview.indexOf(".") + 1)}
-        </Text>
-
-        {/* --- Seasons Section --- */}
-        {details.seasons && details.seasons.length > 0 && (
-          <View style={styles.seasonsContainer}>
-            <FlatList
-              horizontal
-              data={details.seasons.filter((s) => s.episode_count > 0)} // Only show seasons with episodes
-              keyExtractor={(item) => item.id.toString()}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.seasonListContent}
-              renderItem={({ item }) => (
-                <TouchableOpacity
+                <Text
                   style={[
-                    styles.seasonButton,
-                    { borderColor: color.text },
-                    item.season_number === selectedSeasonNumber && {
-                      backgroundColor: color.tint,
-                    },
+                    styles.value,
+                    { marginBottom: 5, textAlign: "center" },
                   ]}
-                  onPress={() => setSelectedSeasonNumber(item.season_number)}
                 >
-                  <Text
+                  {details.genres?.map((g: Genre) => g.name).join(", ") ||
+                    "N/A"}
+                </Text>
+
+                <Text
+                  style={[
+                    styles.tagline,
+                    { fontStyle: "normal", fontWeight: "bold" },
+                  ]}
+                >
+                  {details.number_of_seasons || "N/A"} Seasons •{" "}
+                  {details.number_of_episodes} Episodes
+                </Text>
+              </View>
+            </ImageBackground>
+          ) : (
+            <View style={[styles.backgroundImage, styles.noImageBackground]}>
+              <View style={styles.overlay} />
+              <View style={styles.headerContent}>
+                <Text style={styles.title}>{details.name}</Text>
+                {details.tagline ? (
+                  <Text style={styles.tagline}>{details.tagline}</Text>
+                ) : null}
+                <Text style={styles.noImageText}>No image available</Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: Colors[colorScheme ?? "dark"].background },
+          ]}
+        >
+          <Text style={[styles.overview, { color: color.text }]}>
+            {details.overview.substring(0, details.overview.indexOf(".") + 1)}
+          </Text>
+
+          {/* --- Seasons Section --- */}
+          {details.seasons && details.seasons.length > 0 && (
+            <View style={styles.seasonsContainer}>
+              <FlatList
+                horizontal
+                data={details.seasons.filter((s) => s.episode_count > 0)} // Only show seasons with episodes
+                keyExtractor={(item) => item.id.toString()}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.seasonListContent}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
                     style={[
-                      styles.seasonButtonText,
-                      {
-                        color:
-                          item.season_number === selectedSeasonNumber
-                            ? Colors.light.text
-                            : color.text,
+                      styles.seasonButton,
+                      { borderColor: color.text },
+                      item.season_number === selectedSeasonNumber && {
+                        backgroundColor: color.tint,
                       },
                     ]}
+                    onPress={() => setSelectedSeasonNumber(item.season_number)}
                   >
-                    {item.season_number === 0
-                      ? "Specials"
-                      : `Season ${item.season_number}`}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        )}
-
-        {/* --- Episodes Section --- */}
-        {selectedSeasonNumber !== null && (
-          <View style={styles.episodesContainer}>
-            {seasonDetails ? (
-              seasonDetails.episodes.length > 0 ? (
-                seasonDetails.episodes.map((episode, index) => (
-                  <TouchableOpacity
-                    onPress={() => handlePress(index + 1)}
-                    key={episode.id}
-                    style={[styles.episodeItem, { borderColor: color.icon }]}
-                    // onPress={() => handlePlayEpisode(episode)} // Implement this for specific episode playback
-                  >
-                    {episode.still_path && (
-                      <ImageBackground
-                        source={{
-                          uri: `https://image.tmdb.org/t/p/w300${episode.still_path}`,
-                        }}
-                        style={styles.episodeStill}
-                        imageStyle={{ borderRadius: 8 }}
-                      >
-                        <MaterialIcons
-                          name="play-circle"
-                          size={40}
-                          color="rgba(255,255,255,0.8)"
-                        />
-                      </ImageBackground>
-                    )}
-                    <View style={styles.episodeInfo}>
-                      <Text
-                        style={[styles.episodeTitle, { color: color.text }]}
-                      >
-                        E{episode.episode_number}: {episode.name}
-                      </Text>
-                      <Text
-                        style={[styles.episodeOverview, { color: color.icon }]}
-                      >
-                        {episode.overview
-                          ? episode.overview.substring(0, 50) + "..."
-                          : "No overview available."}
-                      </Text>
-                    </View>
+                    <Text
+                      style={[
+                        styles.seasonButtonText,
+                        {
+                          color:
+                            item.season_number === selectedSeasonNumber
+                              ? Colors.light.text
+                              : color.text,
+                        },
+                      ]}
+                    >
+                      {item.season_number === 0
+                        ? "Specials"
+                        : `Season ${item.season_number}`}
+                    </Text>
                   </TouchableOpacity>
-                ))
-              ) : (
-                <Text style={[styles.noEpisodesText, { color: color.icon }]}>
-                  No episodes found for this season.
-                </Text>
-              )
-            ) : (
-              <ActivityIndicator size="small" color="#0000ff" />
-            )}
-          </View>
-        )}
+                )}
+              />
+            </View>
+          )}
 
-        <TouchableOpacity style={[styles.btn, { borderColor: color.icon }]}>
-          <Text style={{ color: color.text }}>💓cody</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          {/* --- Episodes Section --- */}
+          {selectedSeasonNumber !== null && (
+            <View style={styles.episodesContainer}>
+              {seasonDetails ? (
+                seasonDetails.episodes.length > 0 ? (
+                  seasonDetails.episodes.map((episode, index) => (
+                    <TouchableOpacity
+                      onPress={() => handlePress(index + 1)}
+                      key={episode.id}
+                      style={[styles.episodeItem, { borderColor: color.icon }]}
+                      // onPress={() => handlePlayEpisode(episode)} // Implement this for specific episode playback
+                    >
+                      {episode.still_path && (
+                        <ImageBackground
+                          source={{
+                            uri: `https://image.tmdb.org/t/p/w300${episode.still_path}`,
+                          }}
+                          style={styles.episodeStill}
+                          imageStyle={{ borderRadius: 8 }}
+                        >
+                          <MaterialIcons
+                            name="play-circle"
+                            size={40}
+                            color="rgba(255,255,255,0.8)"
+                          />
+                        </ImageBackground>
+                      )}
+                      <View style={styles.episodeInfo}>
+                        <Text
+                          style={[styles.episodeTitle, { color: color.text }]}
+                        >
+                          E{episode.episode_number}: {episode.name}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.episodeOverview,
+                            { color: color.icon },
+                          ]}
+                        >
+                          {episode.overview
+                            ? episode.overview.substring(0, 50) + "..."
+                            : "No overview available."}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={[styles.noEpisodesText, { color: color.icon }]}>
+                    No episodes found for this season.
+                  </Text>
+                )
+              ) : (
+                // shimmer loading for episode list
+                <View style={{ width: "100%" }}>
+                  {[1, 2, 3].map((i) => (
+                    <View
+                      key={i}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginBottom: 15,
+                      }}
+                    >
+                      <ShimmerPlaceholder
+                        shimmerColors={
+                          colorScheme === "dark"
+                            ? ["#222", "#111", "#222"]
+                            : undefined
+                        }
+                        style={{
+                          width: 100,
+                          height: 50,
+                          borderRadius: 8,
+                          marginRight: 15,
+                        }}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <ShimmerPlaceholder
+                          shimmerColors={
+                            colorScheme === "dark"
+                              ? ["#222", "#111", "#222"]
+                              : undefined
+                          }
+                          style={{
+                            height: 18,
+                            width: "60%",
+                            borderRadius: 6,
+                            marginBottom: 8,
+                          }}
+                        />
+                        <ShimmerPlaceholder
+                          shimmerColors={
+                            colorScheme === "dark"
+                              ? ["#222", "#111", "#222"]
+                              : undefined
+                          }
+                          style={{ height: 12, width: "80%", borderRadius: 6 }}
+                        />
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+
+          <TouchableOpacity style={[styles.btn, { borderColor: color.icon }]}>
+            <Text style={{ color: color.text }}>💓cody</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </>
   );
 };
 
