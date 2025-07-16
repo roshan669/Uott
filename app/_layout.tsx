@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
 import { useColorScheme } from "react-native";
 export const unstable_settings = {
   initialRouteName: "index",
@@ -8,6 +9,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  SystemUI.setBackgroundColorAsync("#000000");
 
   return (
     <>

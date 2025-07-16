@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   },
   posterImage: {
     width: "100%",
-    height: 230, // Fixed height for posters
+    height: 250, // Fixed height for posters
     borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: { width: 10, height: 10 },

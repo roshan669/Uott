@@ -3,8 +3,10 @@
 import MovieList from "@/components/movieList"; // Adjust path based on your structure
 import PopularList from "@/components/popularList";
 import { Colors } from "@/constants/Colors";
+import { useNavigation } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, Text, useColorScheme } from "react-native";
 // import { ScrollView } from "react-native-gesture-handler";
 
@@ -13,6 +15,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default React.memo(function HomePage() {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "dark"];
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   // Simulate loading for shimmer demo (replace with real loading logic)
 
@@ -22,6 +29,7 @@ export default React.memo(function HomePage() {
         backgroundColor: colorScheme === "dark" ? "#000" : "#fff",
       }}
     >
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <Text style={[styles.title, { color: color.text }]}>Trending</Text>
       <MovieList />
       <Text style={[styles.title, { color: color.text }]}>Now Playing</Text>
@@ -45,7 +53,3 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
 });
-
-export const options = {
-  animation: "fade",
-};

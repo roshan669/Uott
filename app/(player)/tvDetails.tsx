@@ -1,7 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useGlobalSearchParams, useRouter } from "expo-router";
+import { useGlobalSearchParams, useNavigation, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
@@ -126,7 +126,6 @@ const TvDetails: React.FC = () => {
   const [selectedSeasonNumber, setSelectedSeasonNumber] = useState<
     number | null
   >(null); // Track selected season
-  const [selectedEp, setSelectedEp] = useState<number>(1);
   const [error, setError] = useState<string | null>(null);
 
   const colorScheme = useColorScheme();
@@ -134,6 +133,12 @@ const TvDetails: React.FC = () => {
   const { id } = useGlobalSearchParams();
   const tvShowId =
     typeof id === "string" ? id : Array.isArray(id) ? id[0] : null;
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({ headerShown: false, animation: "fade" });
+  }, [navigation]);
 
   // --- Effect to fetch TV Show Details ---
   useEffect(() => {
@@ -237,12 +242,6 @@ const TvDetails: React.FC = () => {
     }
     fetchSelectedSeasonDetails();
   }, [tvShowId, selectedSeasonNumber]); // Re-fetch when TV show ID or selected season changes
-
-  // useEffect(() => {
-  //   setInterval(() => {
-  //     setLoading(true);
-  //   }, 100);
-  // }, []);
 
   const ShimmerPlaceholder = createShimmerPlaceholder(LinearGradient);
 
@@ -362,14 +361,13 @@ const TvDetails: React.FC = () => {
   }
 
   const handlePress = (ep: number) => {
-    setSelectedEp(ep);
     router.push({
       pathname: "/(player)/player",
       params: {
         id: tvShowId!,
         type: "tv",
         season: selectedSeasonNumber,
-        ep: selectedEp,
+        ep,
       },
     });
   };
@@ -486,9 +484,9 @@ const TvDetails: React.FC = () => {
             <View style={styles.episodesContainer}>
               {seasonDetails ? (
                 seasonDetails.episodes.length > 0 ? (
-                  seasonDetails.episodes.map((episode, index) => (
+                  seasonDetails.episodes.map((episode) => (
                     <TouchableOpacity
-                      onPress={() => handlePress(index + 1)}
+                      onPress={() => handlePress(episode.episode_number)}
                       key={episode.id}
                       style={[styles.episodeItem, { borderColor: color.icon }]}
                       // onPress={() => handlePlayEpisode(episode)} // Implement this for specific episode playback

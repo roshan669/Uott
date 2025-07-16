@@ -1,16 +1,12 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useColorScheme } from "react-native";
+import * as SystemUI from "expo-system-ui";
 
 export default function PlayerLayout() {
-  const colorScheme = useColorScheme();
+  SystemUI.setBackgroundColorAsync("#000000");
   return (
     <>
-      <StatusBar
-        style={colorScheme === "light" ? "dark" : "light"}
-        translucent
-        animated
-      />
+      <StatusBar translucent style={"auto"} />
       <Stack screenOptions={{ headerShown: false }} />
     </>
   );

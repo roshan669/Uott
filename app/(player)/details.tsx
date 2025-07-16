@@ -2,7 +2,7 @@ import { Colors } from "@/constants/Colors";
 import { Movie } from "@/contexts/movieContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useGlobalSearchParams, useRouter } from "expo-router";
+import { useGlobalSearchParams, useNavigation, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
@@ -34,6 +34,12 @@ const Details: React.FC = () => {
   const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [similar, setSimilar] = useState<Movie[]>([]);
   const [searchError, setSearchError] = useState<string>();
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({ headerShown: false, animation: "fade" });
+  }, [navigation]);
 
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "dark"];
