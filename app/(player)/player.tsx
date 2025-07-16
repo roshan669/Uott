@@ -1,67 +1,137 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useKeepAwake } from "expo-keep-awake";
 import { useGlobalSearchParams, useNavigation } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
+import { FlatList } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import WebView from "react-native-webview";
+import { Colors } from "react-native/Libraries/NewAppScreen"; // Make sure Colors is correctly imported or defined
 
-const MOVIE_URL = "https://player.videasy.net/movie/";
-const TV_URL = "https://player.videasy.net/tv/";
+const GITHUB_RAW_JSON_URL =
+  "https://raw.githubusercontent.com/roshan669/Uott/refs/heads/master/providers.json";
+
+interface Provider {
+  // Renamed from 'providers' to 'Provider' for single item type
+  id: string;
+  name: string;
+  urls: {
+    movie: string;
+    tv: string;
+  };
+}
 
 export const Player: React.FC = () => {
   useKeepAwake();
-  const { id, type, season, ep } = useGlobalSearchParams();
-  // const webviewRef = useRef(null);
+  // Ensure these params are converted to string if they might be arrays or undefined
+  const { id, type, season, ep } = useGlobalSearchParams<{
+    id: string;
+    type: string;
+    season?: string;
+    ep?: string;
+  }>();
+
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(
+    null
+  ); // State to hold the currently selected provider
+  const [loading, setLoading] = useState(true); // Added loading state for initial fetch
+  const [error, setError] = useState<unknown>(null); // Explicitly setting to null
+
+  const colorScheme = useColorScheme();
+  const color = Colors[colorScheme ?? "dark"]; // Ensure Colors is properly defined/imported
+
   const navigation = useNavigation();
 
-  // const [isFullscreen, setIsFullscreen] = useState(false);
-  // const [brightness, setBrightness] = useState(1);
-  // const lastTouchY = useRef(0);
+  useEffect(() => {
+    const fetchEmbedProviders = async () => {
+      try {
+        const response = await fetch(GITHUB_RAW_JSON_URL);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data: Provider[] = await response.json();
+        setProviders(data);
+        if (data.length > 0) {
+          setSelectedProvider(data[0]); // Set the first provider as selected by default
+        }
+      } catch (e) {
+        setError(e);
+        console.error("Failed to fetch embed providers:", e);
+      } finally {
+        setLoading(false); // Set loading to false once fetch is complete (success or error)
+      }
+    };
+
+    fetchEmbedProviders();
+  }, []); // Empty dependency array means this runs once on component mount
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false, animation: "fade" });
   }, [navigation]);
-
-  // useEffect(() => {
-  //   // Get initial brightness
-  //   Brightness.getBrightnessAsync().then(setBrightness);
-  //   Brightness.requestPermissionsAsync(); // Request permission for brightness control
-  // }, []);
 
   interface ShouldStartLoadEvent {
     url: string;
     [key: string]: any;
   }
 
+  // Handle URL navigation inside WebView
   const handleShouldStartLoadWithRequest = (
     event: ShouldStartLoadEvent
   ): boolean => {
     const { url } = event;
-    const allowedDomain = "https://player.videasy.net";
 
-    if (url.startsWith(allowedDomain)) {
-      return true; // Allow navigation within videasy.net
+    // Dynamically check against the base domains of all fetched providers
+    const allowedDomains = providers
+      .map((p) => {
+        try {
+          // Replace placeholders to make the URL parsable for base domain
+          const baseUrl = new URL(
+            p.urls.movie.replace(/\$\{[^}]+\}/g, "TEMP_PLACEHOLDER")
+          );
+          return `${baseUrl.protocol}//${baseUrl.host}`;
+        } catch (e) {
+          console.warn(
+            `Invalid URL format in provider ${p.name}: ${p.urls.movie}`,
+            e
+          );
+          return null;
+        }
+      })
+      .filter(Boolean); // Filter out any null values from invalid URLs
+
+    if (allowedDomains.some((domain) => url.startsWith(domain))) {
+      return true; // Allow navigation to any of the fetched provider domains
     } else {
+      console.warn(`Blocked external navigation from WebView: ${url}`);
       return false; // Prevent WebView from loading the external URL
     }
   };
 
-  // New prop for handling window.open()
+  // Prevent WebView from opening new windows (pop-ups)
   const handleOnOpenWindow = ({
     nativeEvent,
   }: {
     nativeEvent: { targetUrl: string };
   }) => {
+    console.log("WebView tried to open new window:", nativeEvent.targetUrl);
     return false;
   };
+
   // Listen for fullscreen events from the WebView
   const handleMessage = (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
       if (data && data.type === "fullscreenchange" && data.isFullscreen) {
-        // setIsFullscreen(true);
         ScreenOrientation.lockAsync(
           ScreenOrientation.OrientationLock.LANDSCAPE
         );
@@ -70,73 +140,86 @@ export const Player: React.FC = () => {
         data.type === "fullscreenchange" &&
         !data.isFullscreen
       ) {
-        // setIsFullscreen(false);
         ScreenOrientation.unlockAsync();
       }
-    } catch {}
+    } catch (e) {
+      console.error("Error parsing WebView message:", e);
+    }
   };
 
-  // PanResponder for brightness control inside Modal
-  // const panResponder = useMemo(
-  //   () =>
-  //     PanResponder.create({
-  //       onStartShouldSetPanResponder: () => true,
-  //       onMoveShouldSetPanResponder: () => true,
-  //       onPanResponderGrant: (evt, gestureState) => {
-  //         // When the gesture starts, initialize lastTouchY with the current dy.
-  //         // For the first move, deltaY will be gestureState.dy - 0, so it will be just gestureState.dy.
-  //         lastTouchY.current = 0; // Reset dy tracking for a new gesture
-  //       },
-  //       onPanResponderMove: async (evt, gestureState) => {
-  //         if (!isFullscreen) return; // Only allow brightness control in fullscreen
+  // Function to construct the WebView URL based on selectedProvider
+  const getWebViewUrl = () => {
+    if (!selectedProvider || !id) {
+      // Return a blank page or a placeholder URL if no provider is selected or id is missing
+      return "about:blank";
+    }
 
-  //         const x = gestureState.moveX;
-  //         const width = Dimensions.get("window").width;
-  //         if (x > width * 0.25) return; // Only apply if gesture is on the left 25% of the screen
+    let urlTemplate = "";
+    if (type === "tv" && season && ep) {
+      urlTemplate = selectedProvider.urls.tv;
 
-  //         // Calculate the change in Y displacement since the *last* move event
-  //         // gestureState.dy is the accumulated displacement from the start of the gesture.
-  //         const deltaY = gestureState.dy - lastTouchY.current;
+      return (
+        urlTemplate
+          .replace(/\$\{id\}/g, id)
+          .replace(/\$\{season\}/g, season)
+          .replace(/\$\{episode\}/g, ep) +
+        (selectedProvider.id === "videasy"
+          ? "?nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true"
+          : "")
+      );
+    } else if (type === "movie") {
+      urlTemplate = selectedProvider.urls.movie;
+      // Replace placeholders for movies
+      return urlTemplate.replace(/\$\{id\}/g, id);
+    }
+    return "about:blank"; // Fallback if type is neither movie nor tv, or params are missing
+  };
 
-  //         // Update lastTouchY for the *next* move event
-  //         lastTouchY.current = gestureState.dy;
+  // Render loading state
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          styles.centerContent,
+          { backgroundColor: "#000" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#007bff" />
+        <Text style={styles.loadingText}>Loading providers...</Text>
+      </View>
+    );
+  }
 
-  //         // Negate deltaY so that dragging UP (negative deltaY) increases brightness
-  //         // and dragging DOWN (positive deltaY) decreases brightness.
-  //         const sensitivity = 0.02; // Adjust as needed, try 0.01 or 0.02 for more responsiveness
-  //         let brightnessChange = -deltaY * sensitivity;
-
-  //         // Calculate the new brightness, ensuring it stays between 0 and 1
-  //         let newBrightness = brightness + brightnessChange;
-  //         newBrightness = Math.max(0, Math.min(1, newBrightness));
-
-  //         // Update the state and set the device brightness
-  //         setBrightness(newBrightness);
-  //         await Brightness.setBrightnessAsync(newBrightness);
-
-  //         console.log(
-  //           "PanResponderMove: " + "Current Acc. DY:",
-  //           gestureState.dy.toFixed(2),
-  //           " | " + "Delta Y (since last move):",
-  //           deltaY.toFixed(2),
-  //           " | " + "Brightness Change:",
-  //           brightnessChange.toFixed(3),
-  //           " | " + "New Brightness:",
-  //           newBrightness.toFixed(2)
-  //         );
-  //       },
-  //       onPanResponderRelease: () => {
-  //         // No specific action needed here.
-  //       },
-  //     }),
-  //   [isFullscreen, brightness] // Re-create memoized value if these dependencies change
-  // );
+  // Render error state
+  if (error) {
+    return (
+      <View
+        style={[
+          styles.container,
+          styles.centerContent,
+          { backgroundColor: "#000" },
+        ]}
+      >
+        <Text style={styles.errorText}>Error loading providers:</Text>
+        <Text style={styles.errorText}>
+          {error instanceof Error ? error.message : String(error)}
+        </Text>
+        <TouchableOpacity onPress={() => setLoading(true)}>
+          {" "}
+          {/* Allow retry */}
+          <Text style={styles.retryText}>Tap to Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <>
       <StatusBar style={"light"} translucent />
       <SafeAreaView style={[styles.container, { backgroundColor: "#000" }]}>
         <WebView
+          key={selectedProvider?.id || "default"} // Key changes to force WebView re-render when provider changes
           style={[
             styles.webview,
             {
@@ -151,12 +234,7 @@ export const Player: React.FC = () => {
           renderLoading={() => (
             <View style={{ flex: 1, backgroundColor: "#000" }} />
           )}
-          source={{
-            uri:
-              type === "tv"
-                ? `${TV_URL}${id}/${season}/${ep}?nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true`
-                : `${MOVIE_URL}${id}`,
-          }}
+          source={{ uri: getWebViewUrl() }} // Dynamic URL from getWebViewUrl
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           setSupportMultipleWindows={false}
           onOpenWindow={handleOnOpenWindow}
@@ -164,12 +242,63 @@ export const Player: React.FC = () => {
           injectedJavaScript={`
             document.documentElement.style.backgroundColor = '#000000';
             document.body.style.backgroundColor = '#000000';
+            // Post message when fullscreen changes
             document.addEventListener('fullscreenchange', function() {
               window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'fullscreenchange', isFullscreen: !!document.fullscreenElement }));
             });
+            // Auto-play the video if possible (this is often blocked by browsers/WebViews for user experience)
+            const video = document.querySelector('video');
+            if (video) {
+                video.play().catch(e => console.log("Autoplay failed:", e));
+            }
             true;
           `}
         />
+
+        <View style={styles.providerListSection}>
+          <Text style={styles.title}>Available Providers</Text>
+          <Text style={styles.infoText}>
+            Please select another provider if getting an error in the current
+            one.
+          </Text>
+
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.flatListContentContainer}
+            data={providers}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedProvider(item); // Set the selected provider on press
+                }}
+                style={[
+                  styles.providerItem,
+                  selectedProvider?.id === item.id &&
+                    styles.providerItemSelected, // Apply selected style
+                ]}
+              >
+                <Ionicons
+                  name="play"
+                  color={
+                    selectedProvider?.id === item.id ? Colors.white : color.text
+                  }
+                  size={20}
+                />
+                <Text
+                  style={[
+                    styles.providerName,
+                    selectedProvider?.id === item.id &&
+                      styles.providerNameSelected, // Apply selected text style
+                  ]}
+                >
+                  {item.name}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
       </SafeAreaView>
     </>
   );
@@ -178,11 +307,85 @@ export const Player: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 0,
-    margin: 0,
+  },
+  centerContent: {
+    flex: 1, // Ensure it takes full space for centering
+    justifyContent: "center",
+    alignItems: "center",
   },
   webview: {
-    flex: 1,
+    flex: 1, // WebView takes up remaining space
+  },
+  providerListSection: {
+    height: "20%", // Adjusted height slightly for better visual balance, or set to a fixed number like 180
+    backgroundColor: Colors.background, // Use Colors.background for consistency
+    paddingVertical: 10,
+    borderTopWidth: StyleSheet.hairlineWidth, // Small line to separate from WebView
+    borderTopColor: "#333",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 5,
+    textAlign: "center",
+    color: "#fff", // Use Colors.text for dynamic color
+  },
+  infoText: {
+    color: "#ff4500", // Orange color for warning
+    marginLeft: 5,
+    marginBottom: 10, // Increased margin for better separation
+    fontWeight: "300", // Slightly bolder than 200
+    fontSize: 10, // Slightly larger
+    textAlign: "center",
+  },
+  flatListContentContainer: {
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  providerItem: {
+    backgroundColor: "#333", // Use Colors.card or a light color from Colors
+    borderRadius: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8, // Increased gap for better spacing between icon and text
+    marginHorizontal: 5, // Spacing between items
+    // Min width and height for consistent button size
+    minWidth: 120,
+    height: 50,
+    elevation: 3,
+  },
+  providerItemSelected: {
+    backgroundColor: "#007bff", // Blue background for selected item
+    borderColor: "#007bff",
+    borderWidth: 2, // Thicker border for selected
+  },
+  providerName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.text, // Use Colors.text for dynamic color
+  },
+  providerNameSelected: {
+    color: Colors.white, // White text for selected item
+  },
+  loadingText: {
+    color: Colors.text,
+    marginTop: 10,
+    fontSize: 16,
+  },
+  errorText: {
+    color: Colors.error, // Assuming Colors.error exists or define 'red'
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 20,
+  },
+  retryText: {
+    color: "#007bff", // Blue for retry text
+    fontSize: 16,
+    marginTop: 10,
+    textDecorationLine: "underline",
   },
 });
 

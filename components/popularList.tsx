@@ -49,7 +49,14 @@ const PopularList: React.FC = () => {
   if (showShimmer) {
     return (
       <>
-        <View style={{ flexDirection: "row", gap: 3, marginBottom: 30 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 3,
+            marginBottom: 30,
+            marginLeft: 10,
+          }}
+        >
           <ShimmerPlaceholder
             shimmerColors={
               colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
@@ -85,7 +92,7 @@ const PopularList: React.FC = () => {
             }}
           />
         </View>
-        <View style={{ flexDirection: "row", gap: 3 }}>
+        <View style={{ flexDirection: "row", gap: 3, marginLeft: 10 }}>
           <ShimmerPlaceholder
             shimmerColors={
               colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
