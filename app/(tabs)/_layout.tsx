@@ -5,7 +5,7 @@ import { MovieContextProvider } from "@/contexts/movieContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Platform, useColorScheme } from "react-native";
+import { Platform, StyleSheet, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export const unstable_settings = {
@@ -44,7 +44,7 @@ export default function RootLayout() {
                 position: "absolute",
               },
               default: {
-                borderTopWidth: 0.17,
+                borderTopWidth: StyleSheet.hairlineWidth,
                 // elevation: 1,
                 marginTop: 0,
                 // height: 10,

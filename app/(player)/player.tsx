@@ -28,6 +28,7 @@ interface Provider {
     movie: string;
     tv: string;
   };
+  allowedDomain: string;
 }
 
 export const Player: React.FC = () => {
@@ -61,6 +62,7 @@ export const Player: React.FC = () => {
         }
         const data: Provider[] = await response.json();
         setProviders(data);
+
         if (data.length > 0) {
           setSelectedProvider(data[0]); // Set the first provider as selected by default
         }
@@ -94,11 +96,7 @@ export const Player: React.FC = () => {
     const allowedDomains = providers
       .map((p) => {
         try {
-          // Replace placeholders to make the URL parsable for base domain
-          const baseUrl = new URL(
-            p.urls.movie.replace(/\$\{[^}]+\}/g, "TEMP_PLACEHOLDER")
-          );
-          return `${baseUrl.protocol}//${baseUrl.host}`;
+          return `${p.allowedDomain}`;
         } catch (e) {
           console.warn(
             `Invalid URL format in provider ${p.name}: ${p.urls.movie}`,
@@ -256,10 +254,9 @@ export const Player: React.FC = () => {
         />
 
         <View style={styles.providerListSection}>
-          <Text style={styles.title}>Available Providers</Text>
           <Text style={styles.infoText}>
             Please select another provider if getting an error in the current
-            one.
+            one.{"\n"}or select diffrent server in player
           </Text>
 
           <FlatList
@@ -317,26 +314,21 @@ const styles = StyleSheet.create({
     flex: 1, // WebView takes up remaining space
   },
   providerListSection: {
-    height: "20%", // Adjusted height slightly for better visual balance, or set to a fixed number like 180
+    height: "15%", // Adjusted height slightly for better visual balance, or set to a fixed number like 180
     backgroundColor: Colors.background, // Use Colors.background for consistency
     paddingVertical: 10,
     borderTopWidth: StyleSheet.hairlineWidth, // Small line to separate from WebView
-    borderTopColor: "#333",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 5,
-    textAlign: "center",
-    color: "#fff", // Use Colors.text for dynamic color
+    borderTopColor: "#fff",
+    // borderTopLeftRadius: 0,
   },
   infoText: {
-    color: "#ff4500", // Orange color for warning
-    marginLeft: 5,
-    marginBottom: 10, // Increased margin for better separation
-    fontWeight: "300", // Slightly bolder than 200
+    color: "#fff", // Orange color for warning
+
+    fontWeight: "400", // Slightly bolder than 200
     fontSize: 10, // Slightly larger
     textAlign: "center",
+    fontStyle: "italic",
+    marginBottom: 5,
   },
   flatListContentContainer: {
     alignItems: "center",
@@ -358,9 +350,10 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   providerItemSelected: {
-    backgroundColor: "#007bff", // Blue background for selected item
-    borderColor: "#007bff",
+    backgroundColor: "#0a7ea4", // Blue background for selected item
+    borderColor: "#0a7ea4",
     borderWidth: 2, // Thicker border for selected
+    fontWeight: "bold",
   },
   providerName: {
     fontSize: 16,

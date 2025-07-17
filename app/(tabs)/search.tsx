@@ -299,7 +299,43 @@ const Search: React.FC = () => {
       </View>
       {searchLoading || !showContent ? (
         <>
-          <View style={{ flexDirection: "row", gap: 3, marginBottom: 30 }}>
+          <View style={{ flexDirection: "row", gap: 3 }}>
+            <ShimmerPlaceholder
+              shimmerColors={
+                colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+              }
+              style={{
+                height: 230,
+                width: "45%",
+                borderRadius: 16,
+                margin: 5,
+              }}
+              visible={false}
+              duration={600}
+              shimmerStyle={{
+                opacity: showContent ? 0 : 1,
+                transition: "opacity 0.3s",
+              }}
+            />
+            <ShimmerPlaceholder
+              shimmerColors={
+                colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
+              }
+              style={{
+                height: 230,
+                width: "45%",
+                borderRadius: 16,
+                margin: 5,
+              }}
+              visible={false}
+              duration={600}
+              shimmerStyle={{
+                opacity: showContent ? 0 : 1,
+                transition: "opacity 0.3s",
+              }}
+            />
+          </View>
+          <View style={{ flexDirection: "row", gap: 3 }}>
             <ShimmerPlaceholder
               shimmerColors={
                 colorScheme === "dark" ? ["#222", "#111", "#222"] : undefined
