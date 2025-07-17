@@ -8,23 +8,14 @@
     },
     "allowedDomain": "https://player.videasy.net"
   },
-  {
-    "id": "multiembed",
-    "name": "MultiEmbed",
+   {
+    "id": "vidsrccc",
+    "name": "VidSrc.cc",
     "urls": {
-      "movie": "https://multiembed.mov/?video_id=${id}&tmdb=1",
-      "tv": "https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}"
+      "movie": "https://vidsrc.cc/v2/embed/movie/${id}",
+      "tv": "https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}"
     },
-    "allowedDomain": "https://streamingnow.mov"
-  },
-  {
-    "id": "autoembed",
-    "name": "AutoEmbed",
-    "urls": {
-      "movie": "https://player.autoembed.cc/embed/movie/${id}",
-      "tv": "https://player.autoembed.cc/embed/tv/${id}/${season}/${episode}"
-    },
-    "allowedDomain": "https://test.autoembed.cc"
+    "allowedDomain": "https://vidsrc.cc"
   },
   {
     "id": "pstream",
@@ -34,15 +25,6 @@
       "tv": "https://iframe.pstream.org/embed/tmdb-tv-${id}/${season}/${episode}"
     },
     "allowedDomain": "https://iframe.pstream.mov"
-  },
-  {
-    "id": "vidsrccc",
-    "name": "VidSrc.cc",
-    "urls": {
-      "movie": "https://vidsrc.cc/v2/embed/movie/${id}",
-      "tv": "https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}"
-    },
-    "allowedDomain": "https://vidsrc.cc"
   },
   {
     "id": "vidsrcsu",
@@ -70,5 +52,23 @@
       "tv": "https://vidsrc.xyz/embed/tv?tmdb=${id}&season=${season}&episode=${episode}"
     },
     "allowedDomain": "https://vidsrc.xyz"
+  },
+  {
+    "id": "multiembed",
+    "name": "MultiEmbed",
+    "urls": {
+      "movie": "https://multiembed.mov/?video_id=${id}&tmdb=1",
+      "tv": "https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}"
+    },
+    "allowedDomain": "https://streamingnow.mov"
+  },
+  {
+    "id": "autoembed",
+    "name": "AutoEmbed",
+    "urls": {
+      "movie": "https://player.autoembed.cc/embed/movie/${id}",
+      "tv": "https://player.autoembed.cc/embed/tv/${id}/${season}/${episode}"
+    },
+    "allowedDomain": "https://test.autoembed.cc"
   }
 ]
