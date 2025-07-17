@@ -5,7 +5,8 @@
     "urls": {
       "movie": "https://player.videasy.net/movie/${id}",
       "tv": "https://player.videasy.net/tv/${id}/${season}/${episode}"
-    }
+    },
+    "allowedDomain": "https://player.videasy.net"
   },
   {
     "id": "multiembed",
@@ -13,7 +14,8 @@
     "urls": {
       "movie": "https://multiembed.mov/?video_id=${id}&tmdb=1",
       "tv": "https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}"
-    }
+    },
+    "allowedDomain": "https://streamingnow.mov"
   },
   {
     "id": "autoembed",
@@ -21,23 +23,8 @@
     "urls": {
       "movie": "https://player.autoembed.cc/embed/movie/${id}",
       "tv": "https://player.autoembed.cc/embed/tv/${id}/${season}/${episode}"
-    }
-  },
-  {
-    "id": "2embed",
-    "name": "2Embed",
-    "urls": {
-      "movie": "https://www.2embed.cc/embed/${id}",
-      "tv": "https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}"
-    }
-  },
-  {
-    "id": "smashystream",
-    "name": "SmashyStream",
-    "urls": {
-      "movie": "https://embed.smashystream.com/playere.php?tmdb=${id}",
-      "tv": "https://embed.smashystream.com/playere.php?tmdb=${id}&season=${season}&episode=${episode}"
-    }
+    },
+    "allowedDomain": "https://test.autoembed.cc"
   },
   {
     "id": "pstream",
@@ -45,7 +32,8 @@
     "urls": {
       "movie": "https://iframe.pstream.org/embed/tmdb-movie-${id}",
       "tv": "https://iframe.pstream.org/embed/tmdb-tv-${id}/${season}/${episode}"
-    }
+    },
+    "allowedDomain": "https://iframe.pstream.mov"
   },
   {
     "id": "vidsrccc",
@@ -53,31 +41,8 @@
     "urls": {
       "movie": "https://vidsrc.cc/v2/embed/movie/${id}",
       "tv": "https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}"
-    }
-  },
-  {
-    "id": "embedsu",
-    "name": "Embed.su",
-    "urls": {
-      "movie": "https://embed.su/embed/movie/${id}",
-      "tv": "https://embed.su/embed/tv/${id}/${season}/${episode}"
-    }
-  },
-  {
-    "id": "vidsrcto",
-    "name": "VidSrc.to",
-    "urls": {
-      "movie": "https://vidsrc.to/embed/movie/${id}",
-      "tv": "https://vidsrc.to/embed/tv/${id}/${season}/${episode}"
-    }
-  },
-  {
-    "id": "vidsrcrip",
-    "name": "VidSrc.rip",
-    "urls": {
-      "movie": "https://vidsrc.rip/embed/movie/${id}",
-      "tv": "https://vidsrc.rip/embed/tv/${id}/${id}/${season}/${episode}"
-    }
+    },
+    "allowedDomain": "https://vidsrc.cc"
   },
   {
     "id": "vidsrcsu",
@@ -85,7 +50,8 @@
     "urls": {
       "movie": "https://vidsrc.su/embed/movie/${id}",
       "tv": "https://vidsrc.su/embed/tv/${id}/${season}/${episode}"
-    }
+    },
+    "allowedDomain": "https://vidsrc.su"
   },
   {
     "id": "vidsrcvip",
@@ -93,30 +59,16 @@
     "urls": {
       "movie": "https://vidsrc.vip/embed/movie/${id}",
       "tv": "https://vidsrc.vip/embed/tv/${id}/${season}/${episode}"
-    }
+    },
+    "allowedDomain": "https://vidsrc.vip"
   },
   {
     "id": "frembed",
-    "name": "Frembed",
+    "name": "Vidsrc.xyz",
     "urls": {
-      "movie": "https://frembed.cc/api/film.php?id=${id}",
-      "tv": "https://frembed.cc/api/serie.php?id=${id}&sa=${season}&epi=${episode}"
-    }
-  },
-  {
-    "id": "moviesapi",
-    "name": "MoviesAPI",
-    "urls": {
-      "movie": "https://moviesapi.club/movie/${id}",
-      "tv": "https://moviesapi.club/tv/${id}-${season}-${episode}"
-    }
-  },
-  {
-    "id": "primewire",
-    "name": "PrimeWire",
-    "urls": {
-      "movie": "https://www.primewire.tf/embed/movie?tmdb=${id}",
-      "tv": "https://www.primewire.tf/embed/tv?tmdb=${id}&season=${season}&episode=${episode}"
-    }
+      "movie": "https://vidsrc.xyz/embed/movie/${id}",
+      "tv": "https://vidsrc.xyz/embed/tv?tmdb=${id}&season=${season}&episode=${episode}"
+    },
+    "allowedDomain": "https://vidsrc.xyz"
   }
 ]
