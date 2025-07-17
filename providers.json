@@ -30,8 +30,8 @@
     "id": "2embed",
     "name": "2Embed",
     "urls": {
-      "movie": "https://www.2embed.cc/embed/${id}",
-      "tv": "https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}"
+      "movie": "https://www.2embed.skin/embed/${id}",
+      "tv": "https://www.2embed.skin/embedtv/${id}&s=${season}&e=${episode}"
     },
     "allowedDomain": "https://www.2embed.skin"
   },
