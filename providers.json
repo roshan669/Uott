@@ -79,5 +79,5 @@
       "tv": "https://vidsrc.xyz/embed/tv?tmdb=${id}&season=${season}&episode=${episode}"
     },
     "allowedDomain": "https://vidsrc.xyz"
-  },
+  }
 ]
