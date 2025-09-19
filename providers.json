@@ -52,5 +52,5 @@
       "tv": "https://vidsrc.to/embed/tv/${id}/${season}/${episode}"
     },
     "allowedDomain": "https://vidsrc.su"
-  },
+  }
 ]
