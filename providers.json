@@ -1,12 +1,39 @@
 [
    {
+    "id": "videasy",
+    "name": "VidEasy",
+    "urls": {
+      "movie": "https://player.videasy.net/movie/${id}",
+      "tv": "https://player.videasy.net/tv/${id}/${season}/${episode}"
+    },
+    "allowedDomain": "https://player.videasy.net"
+  },
+   {
     "id": "vidsrccc",
     "name": "VidSrc.cc",
+    "urls": {
+      "movie": "https://vidsrc.cc/embed/movie?tmdb=${id}",
+      "tv": "https://vidsrc.cc/embed/tv?tmdb=${id}&s=${season}&e=${episode}"
+    },
+   "allowedDomain": "https://vidsrc.cc"
+ },
+   {
+    "id": "vidsrccc2",
+    "name": "Netflix",
     "urls": {
       "movie": "https://vidsrc.cc/v2/embed/movie/${id}",
       "tv": "https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}"
     },
     "allowedDomain": "https://vidsrc.cc"
+  },
+     {
+    "id": "vidsrcvip2",
+    "name": "Amazon",
+    "urls": {
+     "movie": "https://vidsrc.vip/embed/movie/${id}",
+      "tv": "https://vidsrc.vip/embed/tv/${id}/${season}/${episode}"
+    },
+    "allowedDomain": "https://vidsrc.vip"
   },
   {
     "id": "vidsrcvip",
@@ -16,6 +43,15 @@
       "tv": "https://vidrock.net/embed/tv/${id}/${season}/${episode}"
     },
     "allowedDomain": "https://vidsrc.vip"
+  },
+    {
+    "id": "pstream",
+    "name": "P-Stream",
+    "urls": {
+      "movie": "https://iframe.pstream.org/embed/tmdb-movie-${id}",
+      "tv": "https://iframe.pstream.org/embed/tmdb-tv-${id}/${season}/${episode}"
+    },
+      "allowedDomain": "https://iframe.pstream.mov"
   },
   {
     "id": "frembed",
@@ -30,8 +66,8 @@
     "id": "multiembed",
     "name": "MultiEmbed",
     "urls": {
-      "movie": "https://multiembed.mov/?video_id=${id}",
-      "tv": "https://multiembed.mov/?video_id=${id}&s=${season}&e=${episode}"
+      "movie": "https://multiembed.mov/?video_id=${id}&tmdb=1",
+      "tv": "https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}"
     },
     "allowedDomain": "https://streamingnow.mov"
   },
