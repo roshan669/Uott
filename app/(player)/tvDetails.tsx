@@ -1,4 +1,8 @@
 import { Colors } from "@/constants/Colors";
+import {
+  API_BEARER_TOKEN,
+  API_URL,
+} from "@/contexts/movieContext/movieContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useGlobalSearchParams, useNavigation, useRouter } from "expo-router";
@@ -21,8 +25,6 @@ const { height } = Dimensions.get("window");
 const API_URI = "https://db.bitcine.app/3/";
 
 const API_KEY = "ad301b7cc82ffe19273e55e4d4206885";
-const API_BEARER_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkOGJhYWFkMGRiOTI0YzI0NmQyYjA0ZjUzNDVhZjg4MiIsIm5iZiI6MTcxNTUxOTIyNy4wMTIsInN1YiI6IjY2NDBiZWZiMThhZDFlNzU4ODIwN2VmMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.A3W5QcNqUZ_nv8xe67asxpCMNWXlDuUNDILWHEqx-OI";
 
 export const options = {
   animation: "fade",
@@ -154,7 +156,7 @@ const TvDetails: React.FC = () => {
 
       try {
         const response = await fetch(
-          `${API_URI}tv/${tvShowId}?language=en-US&api_key=${API_KEY}`,
+          `${API_URL}tv/${tvShowId}?language=en-US`,
           {
             headers: {
               Authorization: `Bearer ${API_BEARER_TOKEN}`,
@@ -211,7 +213,7 @@ const TvDetails: React.FC = () => {
 
       try {
         const response = await fetch(
-          `${API_URI}tv/${tvShowId}/season/${selectedSeasonNumber}?language=en-US&api_key=${API_KEY}`,
+          `${API_URL}tv/${tvShowId}/season/${selectedSeasonNumber}?language=en-US`,
           {
             headers: {
               Authorization: `Bearer ${API_BEARER_TOKEN}`,

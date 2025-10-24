@@ -1,5 +1,9 @@
 import { Colors } from "@/constants/Colors";
 import { Movie } from "@/contexts/movieContext";
+import {
+  API_BEARER_TOKEN,
+  API_URL,
+} from "@/contexts/movieContext/movieContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useGlobalSearchParams, useNavigation, useRouter } from "expo-router";
@@ -44,18 +48,16 @@ const Details: React.FC = () => {
   const colorScheme = useColorScheme();
   const color = Colors[colorScheme ?? "dark"];
   const { id } = useGlobalSearchParams();
-  const API_BEARER_TOKEN =
-    "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkOGJhYWFkMGRiOTI0YzI0NmQyYjA0ZjUzNDVhZjg4MiIsIm5iZiI6MTcxNTUxOTIyNy4wMTIsInN1YiI6IjY2NDBiZWZiMThhZDFlNzU4ODIwN2VmMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.A3W5QcNqUZ_nv8xe67asxpCMNWXlDuUNDILWHEqx-OI";
 
   const fetchInitial = useCallback(async () => {
     setSearchLoading(true);
 
     try {
       const response = await fetch(
-        `${API_URI}movie/${id}/similar?language=en-US&api_key=${API_KEY}&page=1`,
+        `${API_URL}movie/${id}/similar?language=en-US&page=1`,
         {
           headers: {
-            // Authorization: `Bearer ${API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${API_BEARER_TOKEN}`,
             accept: "application/json",
           },
         }
@@ -88,15 +90,12 @@ const Details: React.FC = () => {
   useEffect(() => {
     async function fetchDetail() {
       try {
-        const response = await fetch(
-          `${API_URI}movie/${id}?language=en-US&api_key=${API_KEY}`,
-          {
-            headers: {
-              Authorization: `Bearer ${API_BEARER_TOKEN}`,
-              accept: "application/json",
-            },
-          }
-        );
+        const response = await fetch(`${API_URL}movie/${id}?language=en-US`, {
+          headers: {
+            Authorization: `Bearer ${API_BEARER_TOKEN}`,
+            accept: "application/json",
+          },
+        });
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(

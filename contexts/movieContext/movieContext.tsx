@@ -9,13 +9,13 @@ import React, {
 import { Movie, MovieContextType, Series } from "./types";
 
 // TMDb API Configuration
-const API_URL = "https://api.themoviedb.org/3/";
+export const API_URL = "https://netstream.dhamiroshan730.workers.dev/";
 const API_URI = "https://db.bitcine.app/3/";
 
-const API_KEY = "ad301b7cc82ffe19273e55e4d4206885";
+const API_KEY = "af6dd5a9d0f83bd83d1f216d67deacf3";
 
-const API_BEARER_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkOGJhYWFkMGRiOTI0YzI0NmQyYjA0ZjUzNDVhZjg4MiIsIm5iZiI6MTcxNTUxOTIyNy4wMTIsInN1YiI6IjY2NDBiZWZiMThhZDFlNzU4ODIwN2VmMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.A3W5QcNqUZ_nv8xe67asxpCMNWXlDuUNDILWHEqx-OI";
+export const API_BEARER_TOKEN =
+  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhZjZkZDVhOWQwZjgzYmQ4M2QxZjIxNmQ2N2RlYWNmMyIsIm5iZiI6MTcxNTUxOTIyNy4wMTIsInN1YiI6IjY2NDBiZWZiMThhZDFlNzU4ODIwN2VmMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.ZPlxXSMmTnIvs-nuuwalmPbtPXW383jBxiAheNnAKWA";
 
 // Default context value for initial creation and for cases where it's used outside a Provider.
 // Ensure all properties from MovieContextType are present.
@@ -46,7 +46,7 @@ export const MovieContextProvider: React.FC<MovieContextProviderProps> = ({
 
     try {
       const response = await fetch(
-        `${API_URI}movie/now_playing?language=en-US&api_key=${API_KEY}&page=${page}`,
+        `${API_URL}movie/now_playing?language=en-US&page=${page}`,
         {
           headers: {
             Authorization: `Bearer ${API_BEARER_TOKEN}`,
@@ -95,10 +95,10 @@ export const MovieContextProvider: React.FC<MovieContextProviderProps> = ({
 
     try {
       const response = await fetch(
-        `${API_URI}trending/tv/day?language=en-US&api_key=${API_KEY}&page=${page}`,
+        `${API_URL}trending/tv/day?language=en-US&page=${page}`,
         {
           headers: {
-            // Authorization: `Bearer ${API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${API_BEARER_TOKEN}`,
             accept: "application/json",
           },
         }

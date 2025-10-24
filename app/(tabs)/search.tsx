@@ -2,6 +2,10 @@
 
 import { Colors } from "@/constants/Colors";
 import { Movie } from "@/contexts/movieContext";
+import {
+  API_BEARER_TOKEN,
+  API_URL,
+} from "@/contexts/movieContext/movieContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -19,9 +23,6 @@ import {
 import { TextInput } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createShimmerPlaceholder } from "react-native-shimmer-placeholder";
-const API_URI = "https://db.bitcine.app/3/";
-
-const API_KEY = "ad301b7cc82ffe19273e55e4d4206885";
 
 const { width } = Dimensions.get("window"); // Get screen width
 
@@ -44,10 +45,10 @@ const Search: React.FC = () => {
     setSearchError(null);
     try {
       const response = await fetch(
-        `${API_URI}trending/all/day?language=en-US&api_key=${API_KEY}&page=1`,
+        `${API_URL}trending/all/day?language=en-US&page=1`,
         {
           headers: {
-            // Authorization: `Bearer ${API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${API_BEARER_TOKEN}`,
             accept: "application/json",
           },
         }
@@ -128,12 +129,13 @@ const Search: React.FC = () => {
 
       try {
         const response = await fetch(
-          `${API_URI}search/multi?query=${encodeURIComponent(
+          `${API_URL}search/multi?query=${encodeURIComponent(
             query
-          )}&language=en-US&api_key=${API_KEY}`,
+          )}&language=en-US`,
           {
             headers: {
               accept: "application/json",
+              Authorization: `Bearer ${API_BEARER_TOKEN}`,
             },
             signal: signal, // Link fetch to AbortController
           }
