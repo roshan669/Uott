@@ -9,15 +9,6 @@
     "allowedDomain": "https://player.videasy.net"
   },
   {
-    "id": "vidking",
-    "name": "VidKing",
-    "urls": {
-      "movie": "https://player.vidking.net/movie/${id}",
-      "tv": "https://player.vidking.net/tv/${id}/${season}/${episode}"
-    },
-    "allowedDomain": "https://player.vidking.net"
-  },
-  {
     "id": "vidsrccc",
     "name": "VidSrc.cc",
     "urls": {
