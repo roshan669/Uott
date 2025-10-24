@@ -230,7 +230,15 @@ export const Player: React.FC = () => {
           overScrollMode="never"
           startInLoadingState={true}
           renderLoading={() => (
-            <View style={{ flex: 1, backgroundColor: "#000" }} />
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActivityIndicator size="large" color="#007bff" />
+            </View>
           )}
           source={{ uri: getWebViewUrl() }} // Dynamic URL from getWebViewUrl
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
