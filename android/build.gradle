@@ -33,5 +33,10 @@ allprojects {
   }
 }
 
+// Force NDK version for all subprojects including Expo modules
+ext {
+  ndkVersion = "28.2.13676358"
+}
+
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
